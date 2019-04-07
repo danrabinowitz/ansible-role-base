@@ -1,4 +1,6 @@
 ---
+- include: sshd.yml
+
 - include: postfix.yml
 
 - include: email_routing.yml

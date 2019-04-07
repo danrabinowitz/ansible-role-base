@@ -4,3 +4,6 @@
 
 - name: Restart postfix
   service: name=postfix state=restarted
+
+- name: Restart sshd
+  service: name=sshd state=restarted

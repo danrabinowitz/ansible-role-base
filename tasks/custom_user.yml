@@ -2,12 +2,19 @@
   user:
     name: "{{ custom_username }}"
 
+- file:
+    path: /home/{{ custom_username }}/.ssh
+    state: directory
+    owner: "{{ custom_username }}"
+    group: "{{ custom_username }}"
+    mode: 0755
+
 - name: Install authorized_keys
   copy:
     src: .ssh/authorized_keys
     dest: /home/{{ custom_username }}/.ssh/authorized_keys
     owner: "{{ custom_username }}"
-    group: users
+    group: "{{ custom_username }}"
     mode: 0400
 - name: Set the immutable bit to prevent changes to ~/.ssh and authorized_keys
   command: chattr +i /home/{{ custom_username }}/.ssh/authorized_keys /home/{{ custom_username }}/.ssh
