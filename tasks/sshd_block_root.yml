@@ -1,6 +1,6 @@
 - name: Install enable_root_ssh
   copy:
-    src: .enable_root_ssh
+    src: enable_root_ssh
     dest: /usr/local/sbin/enable_root_ssh
     owner: root
     group: root
