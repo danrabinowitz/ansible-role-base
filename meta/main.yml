@@ -1,1 +1,11 @@
 ---
+
+dependencies: []
+
+galaxy_info:
+  author: Dan Rabinowitz
+  description: Dan's base role
+  platforms:
+  - name: Ubuntu
+    versions:
+    - all
