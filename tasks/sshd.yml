@@ -7,11 +7,15 @@
     - ssh_host_dsa_key.pub
     - ssh_host_ecdsa_key
     - ssh_host_ecdsa_key.pub
+  notify:
+    - Restart sshd
 
 # This is a cool post on changing the sshd port via ansible: https://dmsimard.com/2016/03/15/changing-the-ssh-port-with-ansible/
 # I'm not using it because it makes it harder to use firewalls.
 
 # Use a custom, secure sshd config
+# NOTE: The fact that we are running this ansible code means that we can ssh as root,
+# so we allow that in this config
 - template:
     src: sshd_config.j2
     dest: /etc/ssh/sshd_config
