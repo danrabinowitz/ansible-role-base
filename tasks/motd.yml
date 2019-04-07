@@ -1,0 +1,15 @@
+- name: Remove junk from the ubuntu motd message
+  file:
+    path: /etc/update-motd.d/{{ item }}
+    state: absent
+  with_items:
+    - 10-help-text
+    - 51-cloudguest
+
+- name: Add a custom message to the motd
+  copy:
+    src: update-motd.d/11-server-management
+    dest: /etc/update-motd.d/
+    owner: root
+    group: root
+    mode: 0755

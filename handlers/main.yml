@@ -1,0 +1,6 @@
+---
+- name: Update aliases
+  shell: /usr/bin/newaliases
+
+- name: Restart postfix
+  service: name=postfix state=restarted

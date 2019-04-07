@@ -1,0 +1,10 @@
+#!/bin/sh
+#
+echo ""
+echo "  This server is managed by terraform and ansible."
+echo "    Dan Rabinowitz owns the code which includes"
+echo "    the terraform and ansible code."
+echo ""
+echo "    Do not make any changes to this server except by Dan's terraform and ansible code."
+echo ""
+echo "    For more information, contact: djr@DanielRabinowitz.com"

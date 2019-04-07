@@ -1,0 +1,7 @@
+- name: Updating email routing for root@localhost
+  lineinfile:
+    path: /etc/aliases
+    regexp: '^root:'
+    line: "root: {{ admin_email_address_for_non_humans }}"
+  notify:
+    - Update aliases

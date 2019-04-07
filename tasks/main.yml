@@ -1,0 +1,10 @@
+---
+- include: postfix.yml
+
+- include: email_routing.yml
+
+- include: package_cleanup.yml
+
+- include: motd.yml
+
+- include: personalize_root.yml

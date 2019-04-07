@@ -1,0 +1,8 @@
+- name: Touch ~/.danrabinowitz_install_config_files so that I can fully use sshrc
+  copy:
+    dest: /root/.danrabinowitz_install_config_files
+    owner: root
+    group: root
+    mode: 0600
+    content: ""
+    force: no
