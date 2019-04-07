@@ -1,3 +1,11 @@
+- name: Install enable_root_ssh
+  copy:
+    src: .enable_root_ssh
+    dest: /usr/local/sbin/enable_root_ssh
+    owner: root
+    group: root
+    mode: 0700
+
 - name: Disallow root login via ssh
   lineinfile:
     path: /etc/ssh/sshd_config

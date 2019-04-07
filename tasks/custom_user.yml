@@ -1,6 +1,22 @@
+- name: Make sure we have a 'wheel' group
+  group:
+    name: wheel
+    state: present
+
+- name: Allow 'wheel' group to have passwordless sudo
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: '^%wheel'
+    line: '%wheel ALL=(ALL) NOPASSWD: ALL'
+    validate: visudo -cf %s
+
 - name: Add custom user
   user:
     name: "{{ custom_username }}"
+    shell: /bin/bash
+    groups: wheel
+    append: yes
 
 - file:
     path: /home/{{ custom_username }}/.ssh

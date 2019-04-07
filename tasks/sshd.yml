@@ -10,6 +10,42 @@
   notify:
     - Restart sshd
 
+- package:
+    name: libpam-google-authenticator
+    state: latest
+  notify:
+    - Restart sshd
+
+- name: Install .google_authenticator
+  copy:
+    src: .google_authenticator
+    dest: /home/{{ custom_username }}/.google_authenticator
+    owner: "{{ custom_username }}"
+    group: "{{ custom_username }}"
+    mode: 0400
+  diff: False
+  no_log: True
+- name: Set the immutable bit to prevent changes to ~/.google_authenticator
+  command: chattr +i /home/{{ custom_username }}/.google_authenticator
+  changed_when: False
+
+- name: Update /etc/pam.d/sshd to use pam_google_authenticator
+  lineinfile:
+    path: /etc/pam.d/sshd
+    regexp: '^auth required pam_google_authenticator.so'
+    line: 'auth required pam_google_authenticator.so nullok'
+  notify:
+    - Restart sshd
+
+- name: Update /etc/pam.d/sshd to not ask for passwords
+  lineinfile:
+    path: /etc/pam.d/sshd
+    regexp: '@include common-auth'
+    line: '#@include common-auth'
+  notify:
+    - Restart sshd
+
+
 # This is a cool post on changing the sshd port via ansible: https://dmsimard.com/2016/03/15/changing-the-ssh-port-with-ansible/
 # I'm not using it because it makes it harder to use firewalls.
 
