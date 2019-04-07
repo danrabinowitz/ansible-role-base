@@ -8,3 +8,5 @@
 - include: motd.yml
 
 - include: personalize_root.yml
+
+- include: custom_user.yml
