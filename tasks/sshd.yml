@@ -18,7 +18,7 @@
 
 - name: Install .google_authenticator
   copy:
-    src: .google_authenticator
+    src: secrets/.google_authenticator
     dest: /home/{{ custom_username }}/.google_authenticator
     owner: "{{ custom_username }}"
     group: "{{ custom_username }}"
