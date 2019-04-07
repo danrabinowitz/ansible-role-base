@@ -17,7 +17,7 @@
 - name: Require 2FA
   lineinfile:
     path: /etc/ssh/sshd_config
-    regexp: '^AuthenticationMethods  '
-    line: 'AuthenticationMethods publickey'
+    regexp: '^AuthenticationMethods'
+    line: 'AuthenticationMethods publickey,keyboard-interactive'
   notify:
     - Restart sshd

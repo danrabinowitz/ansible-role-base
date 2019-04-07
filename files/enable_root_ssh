@@ -17,8 +17,8 @@ grep 'PermitRootLogin' /etc/ssh/sshd_config
 # sed -i '/^AllowUsers*/c\AllowUsers djr root' /etc/ssh/sshd_config
 # grep 'AllowUsers' /etc/ssh/sshd_config
 
-grep 'AllowUsers' /etc/ssh/sshd_config
+grep 'AuthenticationMethods' /etc/ssh/sshd_config
 sed -i '/^AuthenticationMethods*/c\AuthenticationMethods publickey' /etc/ssh/sshd_config
-grep 'AllowUsers' /etc/ssh/sshd_config
+grep 'AuthenticationMethods' /etc/ssh/sshd_config
 
 service sshd restart
