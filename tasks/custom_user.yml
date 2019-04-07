@@ -45,6 +45,3 @@
     mode: 0400
   diff: False
   no_log: True
-- name: Set the immutable bit to prevent changes to ~/.google_authenticator
-  command: chattr +i /home/{{ custom_username }}/.google_authenticator
-  changed_when: False
