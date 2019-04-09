@@ -1,4 +1,12 @@
 ---
+- name: get my public IP
+  ipify_facts:
+  register: public_ip
+- debug:
+    var: public_ip
+
+- include: firewall.yml
+
 - include: sshd.yml
 
 - include: postfix.yml

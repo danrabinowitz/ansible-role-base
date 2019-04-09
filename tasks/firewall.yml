@@ -1,0 +1,27 @@
+# First allow ssh access from current ip and jumphost ip to be sure we don't lock ourselves out.
+# Allow ssh from current ip on eth0 (public interface) only.
+- ufw:
+    rule: allow
+    port: ssh
+    proto: tcp
+    from_ip: {{ public_ip }}
+    interface: eth0
+
+# Allow ssh from jumphost ip on any interface
+- ufw:
+    rule: allow
+    port: ssh
+    proto: tcp
+    from_ip: {{ jumphost_ip }}
+
+# ASAP: Enable ufw
+- ufw:
+  state: enabled
+  policy: deny
+  logging: low
+
+# Rate limit ssh
+- ufw:
+    rule: limit
+    port: ssh
+    proto: tcp
