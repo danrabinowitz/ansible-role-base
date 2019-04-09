@@ -5,6 +5,7 @@
     port: ssh
     proto: tcp
     from_ip: "{{ ansible_host_public_ip }}"
+    direction: in
     interface: eth0
 
 # Allow ssh from jumphost ip on any interface
@@ -13,6 +14,7 @@
     port: ssh
     proto: tcp
     from_ip: "{{ jumphost_ip }}"
+    direction: in
 
 # ASAP: Enable ufw
 - ufw:
