@@ -4,7 +4,7 @@
     rule: allow
     port: ssh
     proto: tcp
-    from_ip: {{ public_ip }}
+    from_ip: "{{ public_ip }}"
     interface: eth0
 
 # Allow ssh from jumphost ip on any interface
@@ -12,7 +12,7 @@
     rule: allow
     port: ssh
     proto: tcp
-    from_ip: {{ jumphost_ip }}
+    from_ip: "{{ jumphost_ip }}"
 
 # ASAP: Enable ufw
 - ufw:
