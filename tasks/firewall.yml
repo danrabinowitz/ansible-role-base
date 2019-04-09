@@ -31,7 +31,7 @@
     direction: incoming
 
 # Rate limit ssh
-- ufw:
-    rule: limit
-    port: ssh
-    proto: tcp
+# - ufw:
+#     rule: limit
+#     port: ssh
+#     proto: tcp
