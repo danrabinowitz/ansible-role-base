@@ -6,7 +6,7 @@
 - debug:
     var: public_ip
 - set_fact:
-     public_ip: public_ip.ansible_facts.ipify_public_ip
+     public_ip: "{{ public_ip.ansible_facts.ipify_public_ip }}"
 - debug:
     var: public_ip
 
