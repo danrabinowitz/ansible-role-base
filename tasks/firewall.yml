@@ -29,9 +29,3 @@
     policy: deny
     logging: low
     direction: incoming
-
-# Rate limit ssh
-# - ufw:
-#     rule: limit
-#     port: ssh
-#     proto: tcp

@@ -3,8 +3,6 @@
   ipify_facts:
   register: ansible_host_public_ip
   connection: local
-- debug:
-    var: ansible_host_public_ip
 - set_fact:
      ansible_host_public_ip: "{{ ansible_host_public_ip.ansible_facts.ipify_public_ip }}"
 - debug:
