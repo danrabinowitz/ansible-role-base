@@ -16,9 +16,9 @@
 
 # ASAP: Enable ufw
 - ufw:
-  state: enabled
-  policy: deny
-  logging: low
+    state: enabled
+    policy: deny
+    logging: low
 
 # Rate limit ssh
 - ufw:
