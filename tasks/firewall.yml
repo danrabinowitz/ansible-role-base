@@ -5,7 +5,7 @@
     port: ssh
     proto: tcp
     from_ip: "{{ ansible_host_public_ip }}"
-    direction: in
+    direction: incoming
     interface: eth0
 
 # Allow ssh from jumphost ip on any interface
@@ -14,7 +14,7 @@
     port: ssh
     proto: tcp
     from_ip: "{{ jumphost_ip }}"
-    direction: in
+    direction: incoming
   when: not(
           (jumphost_ip is undefined)
           or
