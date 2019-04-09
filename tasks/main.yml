@@ -1,16 +1,16 @@
 ---
 - name: get my public IP
   ipify_facts:
-  register: public_ip
+  register: ansible_host_public_ip
   connection: local
 - debug:
-    var: public_ip
+    var: ansible_host_public_ip
 - set_fact:
-     public_ip: "{{ public_ip.ansible_facts.ipify_public_ip }}"
+     ansible_host_public_ip: "{{ ansible_host_public_ip.ansible_facts.ipify_public_ip }}"
 - debug:
-    var: public_ip
+    var: ansible_host_public_ip
 
-# - include: firewall.yml
+- include: firewall.yml
 
 - include: sshd.yml
 

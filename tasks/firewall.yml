@@ -4,7 +4,7 @@
     rule: allow
     port: ssh
     proto: tcp
-    from_ip: "{{ public_ip }}"
+    from_ip: "{{ ansible_host_public_ip }}"
     interface: eth0
 
 # Allow ssh from jumphost ip on any interface
