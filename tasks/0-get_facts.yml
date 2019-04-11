@@ -2,8 +2,10 @@
   ipify_facts:
   register: ansible_host_public_ip
   connection: local
-- set_fact:
+- name: Set ansible_host_public_ip
+  set_fact:
      ansible_host_public_ip: "{{ ansible_host_public_ip.ansible_facts.ipify_public_ip }}"
-- debug:
+- name:
+  debug: Display ansible_host_public_ip
     var: ansible_host_public_ip
   when: debug_output is defined and debug_output

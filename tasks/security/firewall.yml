@@ -1,4 +1,4 @@
-- name: Allow ssh access from current ansible host's public ip, so we don't lock ourselves out.
+- name: Base - Security - Firewall - Allow ssh access from current ansible host's public ip, so we don't lock ourselves out
   ufw:
     rule: allow
     port: ssh
@@ -7,7 +7,7 @@
     direction: in
     interface: eth0
 
-- name: Allow ssh access from jumphost's ip
+- name: Base - Security - Firewall - Allow ssh access from jumphost's ip
   ufw:
     rule: allow
     port: ssh
@@ -22,7 +22,7 @@
           (jumphost_ip | trim == '')
         )
 
-- name: Enable ufw ASAP
+- name: Base - Security - Firewall - Enable ufw ASAP
   ufw:
     state: enabled
     policy: deny
