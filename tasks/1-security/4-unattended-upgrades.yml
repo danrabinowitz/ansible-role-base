@@ -3,6 +3,7 @@
     name: ['unattended-upgrades', 'update-notifier-common']
     state: present
     cache_valid_time: 3600
+    install_recommends: no
 
 - name: Install unattended upgrades config
   template:

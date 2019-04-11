@@ -1,6 +1,6 @@
 ---
 - include: 0-get_facts.yml
-- include: 1-security.yml
+- include: 1-security/0-main.yml
 
 ##############################
 # General config
