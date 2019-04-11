@@ -13,9 +13,9 @@
   ignore_errors: true
   changed_when: false
 
-- name: print test_user
-  debug:
-    var: test_user
+# - name: print test_user
+#   debug:
+#     var: test_user
 
 # - name: "Get facts"
 #   setup:
