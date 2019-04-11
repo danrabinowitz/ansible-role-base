@@ -17,7 +17,7 @@
     - Restart sshd
 
 - name: "Security : sshd : Install libpam-google-authenticator"
-  package:
+  apt:
     name: libpam-google-authenticator
     state: latest
     install_recommends: no
