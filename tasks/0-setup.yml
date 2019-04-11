@@ -1,12 +1,21 @@
+# - name: "Get facts"
+#   setup:
+
+# - name: Display all variables/facts known for a host
+#   debug:
+#     var: hostvars[inventory_hostname]
+#   tags: debug_info
+
+
 - name: Determine if default user has access
   local_action: "command ssh -q -o BatchMode=yes -o ConnectTimeout=3 {{ inventory_hostname }} 'echo ok'"
   register: test_user
   ignore_errors: true
   changed_when: false
 
-- name: print remote_user
+- name: print test_user
   debug:
-    var: remote_user
+    var: test_user
 
 - name: "Get facts"
   setup:
@@ -18,7 +27,7 @@
 - name: "Get Facts : Get public IP address"
   ipify_facts:
   register: ansible_host_public_ip
-  connection: local
+  delegate_to: localhost
 
 - name: "Get Facts : Set ansible_host_public_ip"
   set_fact:
