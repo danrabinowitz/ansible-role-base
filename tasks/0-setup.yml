@@ -1,3 +1,9 @@
+- name: Determine if default user has access
+  local_action: "command ssh -q -o BatchMode=yes -o ConnectTimeout=3 {{ inventory_hostname }} 'echo ok'"
+  register: test_user
+  ignore_errors: true
+  changed_when: false
+
 - name: "Get Facts : Get public IP address"
   ipify_facts:
   register: ansible_host_public_ip

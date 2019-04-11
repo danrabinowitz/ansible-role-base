@@ -4,6 +4,9 @@
 # upgrade
 - include: 2-upgrade.yml
 
+# add custom admin user, and lock down root
+- include: 3-admin_users.yml
+
 # sshd updates for security, so do this early
 - include: 3-sshd.yml
 

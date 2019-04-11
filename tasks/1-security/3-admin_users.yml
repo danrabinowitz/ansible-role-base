@@ -1,0 +1,82 @@
+# This is where we (finally) create an admin user to use instead of root.
+
+# Set up a custom admin user to use instead of root
+- name: Make sure we have a 'wheel' group
+  group:
+    name: wheel
+    state: present
+  # At this early stage, we may not have created the real, custom admin account yet,
+  # so we may need to specify the remote_user to be root.
+  remote_user: "{{ test_user | success | ternary(omit, 'root') }}"
+
+- name: Allow 'wheel' group to have passwordless sudo
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: '^%wheel'
+    line: '%wheel ALL=(ALL) NOPASSWD: ALL'
+    validate: visudo -cf %s
+  # At this early stage, we may not have created the real, custom admin account yet,
+  # so we may need to specify the remote_user to be root.
+  remote_user: "{{ test_user | success | ternary(omit, 'root') }}"
+
+- name: Add custom admin user
+  user:
+    name: "{{ admin_username }}"
+    shell: /bin/bash
+    groups: wheel
+    append: yes
+  # At this early stage, we may not have created the real, custom admin account yet,
+  # so we may need to specify the remote_user to be root.
+  remote_user: "{{ test_user | success | ternary(omit, 'root') }}"
+
+- name: Create directory for .ssh
+  file:
+    path: "/home/{{ admin_username }}/.ssh"
+    state: directory
+    owner: "{{ admin_username }}"
+    group: "{{ admin_username }}"
+    mode: 0755
+  # At this early stage, we may not have created the real, custom admin account yet,
+  # so we may need to specify the remote_user to be root.
+  remote_user: "{{ test_user | success | ternary(omit, 'root') }}"
+
+- name: Install authorized_keys
+  copy:
+    src: .ssh/authorized_keys
+    dest: /home/{{ admin_username }}/.ssh/authorized_keys
+    owner: "{{ admin_username }}"
+    group: "{{ admin_username }}"
+    mode: 0400
+- name: Set the immutable bit to prevent changes to ~/.ssh and authorized_keys
+  command: chattr +i /home/{{ admin_username }}/.ssh/authorized_keys /home/{{ admin_username }}/.ssh
+  changed_when: False
+  # At this early stage, we may not have created the real, custom admin account yet,
+  # so we may need to specify the remote_user to be root.
+  remote_user: "{{ test_user | success | ternary(omit, 'root') }}"
+
+- name: Install .google_authenticator
+  copy:
+    src: secrets/.google_authenticator
+    dest: /home/{{ admin_username }}/.google_authenticator
+    owner: "{{ admin_username }}"
+    group: "{{ admin_username }}"
+    mode: 0400
+  diff: False
+  no_log: True
+  # At this early stage, we may not have created the real, custom admin account yet,
+  # so we may need to specify the remote_user to be root.
+  remote_user: "{{ test_user | success | ternary(omit, 'root') }}"
+
+- name: Test the new remote_user
+  command: echo ok
+
+- name: "Stop!"
+  fail:
+    msg: "Stop here"
+
+# `passwd -l` disables an account by changing the password to a value which matches no possible encrypted value.
+- name: "Security : sshd : Lock the password for the root user"
+  user:
+    name: root
+    password_lock: yes
