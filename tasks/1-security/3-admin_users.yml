@@ -73,10 +73,6 @@
 - name: Test the new remote_user
   command: echo ok
 
-- name: "Stop!"
-  fail:
-    msg: "Stop here"
-
 # `passwd -l` disables an account by changing the password to a value which matches no possible encrypted value.
 - name: "Security : sshd : Lock the password for the root user"
   user:
