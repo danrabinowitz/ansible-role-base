@@ -6,8 +6,3 @@
 - name: "Get Facts : Set ansible_host_public_ip"
   set_fact:
      ansible_host_public_ip: "{{ ansible_host_public_ip.ansible_facts.ipify_public_ip }}"
-
-- name: "Get Facts : Display ansible_host_public_ip"
-  debug:
-    var: ansible_host_public_ip
-  when: debug_output is defined and debug_output
