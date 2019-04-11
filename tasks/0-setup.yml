@@ -4,11 +4,30 @@
       - admin_username is defined
     fail_msg: "One or more required variables are missing."
 
+- name: Debug ansible_user
+  debug:
+    var: ansible_user
+    verbosity: "1"
+
+- name: "Set ansible_user"
+  set_fact:
+     ansible_user: "{{ admin_username }}"
+
+- name: Debug ansible_user
+  debug:
+    var: ansible_user
+    verbosity: "1"
+
 - name: Determine if default user has access
   local_action: "command ssh -q -o BatchMode=yes -o ConnectTimeout=3 {{ inventory_hostname }} 'echo ok'"
   register: test_user
   ignore_errors: true
   changed_when: false
+
+- name: Debug test_user
+  debug:
+    var: test_user
+    verbosity: "1"
 
 - name: "Get Facts : Get public IP address"
   ipify_facts:
@@ -19,3 +38,8 @@
 - name: "Get Facts : Set ansible_host_public_ip"
   set_fact:
      ansible_host_public_ip: "{{ ansible_host_public_ip.ansible_facts.ipify_public_ip }}"
+
+- name: Debug ansible_host_public_ip
+  debug:
+    var: ansible_host_public_ip
+    verbosity: "1"
