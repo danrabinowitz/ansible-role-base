@@ -4,6 +4,7 @@
     state: present
     update_cache: yes
     install_recommends: no
+    force_apt_get: yes
 
 - name: "Security : Upgrade : Upgrade APT to the latest packages"
   apt:
