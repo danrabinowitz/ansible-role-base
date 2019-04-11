@@ -1,6 +1,5 @@
-# First allow ssh access from current ip and jumphost ip to be sure we don't lock ourselves out.
-# Allow ssh from current ip on eth0 (public interface) only.
-- ufw:
+- name: Allow ssh access from current ansible host's public ip, so we don't lock ourselves out.
+  ufw:
     rule: allow
     port: ssh
     proto: tcp
@@ -8,8 +7,8 @@
     direction: in
     interface: eth0
 
-# Allow ssh from jumphost ip on any interface
-- ufw:
+- name: Allow ssh access from jumphost's ip
+  ufw:
     rule: allow
     port: ssh
     proto: tcp
@@ -23,8 +22,8 @@
           (jumphost_ip | trim == '')
         )
 
-# ASAP: Enable ufw
-- ufw:
+- name: Enable ufw ASAP
+  ufw:
     state: enabled
     policy: deny
     logging: low
