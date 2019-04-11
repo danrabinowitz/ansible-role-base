@@ -17,12 +17,12 @@
   debug:
     var: test_user
 
-- name: "Get facts"
-  setup:
-    # gather_subset:
-  # At this early stage, we may not have created the real, custom admin account yet,
-  # so we may need to specify the remote_user to be root.
-  remote_user: "{{ test_user is success | ternary(omit, 'root') }}"
+# - name: "Get facts"
+#   setup:
+#     # gather_subset:
+#   # At this early stage, we may not have created the real, custom admin account yet,
+#   # so we may need to specify the remote_user to be root.
+#   remote_user: "{{ test_user is success | ternary(omit, 'root') }}"
 
 - name: "Get Facts : Get public IP address"
   ipify_facts:
