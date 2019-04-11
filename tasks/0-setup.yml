@@ -4,21 +4,7 @@
       - admin_username is defined
     fail_msg: "One or more required variables are missing."
 
-# - name: Debug ansible_user
-#   debug:
-#     var: ansible_user
-#     verbosity: "1"
-
-# - name: "Set ansible_user"
-#   set_fact:
-#      ansible_user: "{{ admin_username }}"
-
-# - name: Debug ansible_user
-#   debug:
-#     var: ansible_user
-#     verbosity: "1"
-
-- name: Determine if default user has access
+- name: Determine if admin_username user has access
   local_action: "command ssh -q -o BatchMode=yes -o ConnectTimeout=3 -l {{ admin_username }} {{ inventory_hostname }} 'echo ok'"
   register: test_user
   ignore_errors: true
@@ -28,6 +14,11 @@
   debug:
     var: test_user
     verbosity: "1"
+
+- name: "Report if admin user is not yet working."
+  debug:
+    msg: "Connections using admin user are not working yet. Using root briefly."
+  when: test_user is not success
 
 - name: "Get Facts : Get public IP address"
   ipify_facts:
