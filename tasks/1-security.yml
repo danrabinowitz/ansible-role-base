@@ -1,0 +1,18 @@
+##############################
+# Security
+##############################
+# Firewall should be first, as soon as we have the public ip from get_facts
+- include: security/firewall.yml
+
+# upgrade
+- include: security/upgrade.yml
+
+# sshd updates for security, so do this early
+- include: security/sshd.yml
+
+# unattended-upgrades
+- include: security/unattended-upgrades.yml
+
+# fail2ban is not needed until we open the firewall to services, so this can be near
+# the end of the security section.
+- include: security/fail2ban.yml

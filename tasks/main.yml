@@ -1,25 +1,22 @@
 ---
-- name: get my public IP
-  ipify_facts:
-  register: ansible_host_public_ip
-  connection: local
-- set_fact:
-     ansible_host_public_ip: "{{ ansible_host_public_ip.ansible_facts.ipify_public_ip }}"
-- debug:
-    var: ansible_host_public_ip
+- include: 0-get_facts.yml
+- include: 1-security.yml
 
-- include: firewall.yml
-
-- include: sshd.yml
-
+##############################
+# General config
+##############################
 - include: postfix.yml
 
 - include: email_routing.yml
 
 - include: package_cleanup.yml
 
+- include: custom_user.yml
+
+
+##############################
+# non-essential customization
+##############################
 - include: motd.yml
 
 - include: personalize_root.yml
-
-- include: custom_user.yml
