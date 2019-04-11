@@ -1,6 +1,3 @@
-##############################
-# Security
-##############################
 # Firewall should be first, as soon as we have the public ip from get_facts
 - include: 1-firewall.yml
 
