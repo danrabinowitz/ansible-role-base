@@ -29,6 +29,10 @@
   register: ansible_host_public_ip
   delegate_to: localhost
 
+- name: "Stop during setup!"
+  fail:
+    msg: "Stop here during setup!"
+
 - name: "Get Facts : Set ansible_host_public_ip"
   set_fact:
      ansible_host_public_ip: "{{ ansible_host_public_ip.ansible_facts.ipify_public_ip }}"
