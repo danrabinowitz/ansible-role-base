@@ -2,6 +2,7 @@
   assert:
     that:
       - admin_username is defined
+    fail_msg: "One or more required variables are missing."
 
 - name: Determine if default user has access
   local_action: "command ssh -q -o BatchMode=yes -o ConnectTimeout=3 {{ inventory_hostname }} 'echo ok'"
