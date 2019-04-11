@@ -1,14 +1,10 @@
-- name: Base - Security - Upgrade  - Install aptitude before performing any bulk upgrades
+- name: "Security : Upgrade  : Install aptitude before performing any bulk upgrades"
   apt:
     name: aptitude
     state: present
     update_cache: yes
+    install_recommends: no
 
-# - name: Update APT package cache
-#   apt:
-#     update_cache: yes
-#     cache_valid_time: 3600
-
-- name: Base - Security - Upgrade - Upgrade APT to the latest packages
+- name: "Security : Upgrade : Upgrade APT to the latest packages"
   apt:
     upgrade: safe

@@ -1,10 +1,10 @@
 # `passwd -l` disables an account by changing the password to a value which matches no possible encrypted value.
-- name: Base - Security - sshd - Lock the password for the root user
+- name: "Security : sshd : Lock the password for the root user"
   user:
     name: root
     password_lock: yes
 
-- name: Base - Security - sshd - Remove junk from /etc/ssh/
+- name: "Security : sshd : Remove junk from /etc/ssh/"
   file:
     path: /etc/ssh/{{ item }}
     state: absent
@@ -16,10 +16,11 @@
   notify:
     - Restart sshd
 
-- name: Base - Security - sshd - Install libpam-google-authenticator
+- name: "Security : sshd : Install libpam-google-authenticator"
   package:
     name: libpam-google-authenticator
     state: latest
+    install_recommends: no
   notify:
     - Restart sshd
 

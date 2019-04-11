@@ -1,11 +1,8 @@
 - name: Install unattended-upgrades
   apt:
-    name: "{{ item }}"
+    name: ['unattended-upgrades', 'update-notifier-common']
     state: present
     cache_valid_time: 3600
-  with_items:
-    - unattended-upgrades
-    - update-notifier-common
 
 - name: Install unattended upgrades config
   template:
