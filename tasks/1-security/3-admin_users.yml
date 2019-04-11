@@ -7,7 +7,7 @@
     state: present
   # At this early stage, we may not have created the real, custom admin account yet,
   # so we may need to specify the remote_user to be root.
-  remote_user: "{{ test_user | success | ternary(omit, 'root') }}"
+  remote_user: "{{ test_user is success | ternary(omit, 'root') }}"
 
 - name: Allow 'wheel' group to have passwordless sudo
   lineinfile:
@@ -18,7 +18,7 @@
     validate: visudo -cf %s
   # At this early stage, we may not have created the real, custom admin account yet,
   # so we may need to specify the remote_user to be root.
-  remote_user: "{{ test_user | success | ternary(omit, 'root') }}"
+  remote_user: "{{ test_user is success | ternary(omit, 'root') }}"
 
 - name: Add custom admin user
   user:
@@ -28,7 +28,7 @@
     append: yes
   # At this early stage, we may not have created the real, custom admin account yet,
   # so we may need to specify the remote_user to be root.
-  remote_user: "{{ test_user | success | ternary(omit, 'root') }}"
+  remote_user: "{{ test_user is success | ternary(omit, 'root') }}"
 
 - name: Create directory for .ssh
   file:
@@ -39,7 +39,7 @@
     mode: 0755
   # At this early stage, we may not have created the real, custom admin account yet,
   # so we may need to specify the remote_user to be root.
-  remote_user: "{{ test_user | success | ternary(omit, 'root') }}"
+  remote_user: "{{ test_user is success | ternary(omit, 'root') }}"
 
 - name: Install authorized_keys
   copy:
@@ -53,7 +53,7 @@
   changed_when: False
   # At this early stage, we may not have created the real, custom admin account yet,
   # so we may need to specify the remote_user to be root.
-  remote_user: "{{ test_user | success | ternary(omit, 'root') }}"
+  remote_user: "{{ test_user is success | ternary(omit, 'root') }}"
 
 - name: Install .google_authenticator
   copy:
@@ -66,7 +66,7 @@
   no_log: True
   # At this early stage, we may not have created the real, custom admin account yet,
   # so we may need to specify the remote_user to be root.
-  remote_user: "{{ test_user | success | ternary(omit, 'root') }}"
+  remote_user: "{{ test_user is success | ternary(omit, 'root') }}"
 
 - name: Test the new remote_user
   command: echo ok

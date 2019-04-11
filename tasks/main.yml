@@ -1,4 +1,3 @@
----
 # determine_remote_user must be before any other remote calls
 - include: 0-setup.yml
 - include: 1-security/0-main.yml

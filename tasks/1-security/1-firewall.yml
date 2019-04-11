@@ -8,7 +8,11 @@
     interface: eth0
   # At this early stage, we may not have created the real, custom admin account yet,
   # so we may need to specify the remote_user to be root.
-  remote_user: "{{ test_user | success | ternary(omit, 'root') }}"
+  remote_user: "{{ test_user is success | ternary(omit, 'root') }}"
+
+- name: "Stop during firewall!"
+  fail:
+    msg: "Stop here during firewall!"
 
 - name: "Security : Firewall : Allow ssh access from jumphost's ip"
   ufw:
@@ -26,7 +30,7 @@
         )
   # At this early stage, we may not have created the real, custom admin account yet,
   # so we may need to specify the remote_user to be root.
-  remote_user: "{{ test_user | success | ternary(omit, 'root') }}"
+  remote_user: "{{ test_user is success | ternary(omit, 'root') }}"
 
 - name: "Security : Firewall : Enable ufw ASAP"
   ufw:
@@ -36,4 +40,4 @@
     direction: incoming
   # At this early stage, we may not have created the real, custom admin account yet,
   # so we may need to specify the remote_user to be root.
-  remote_user: "{{ test_user | success | ternary(omit, 'root') }}"
+  remote_user: "{{ test_user is success | ternary(omit, 'root') }}"
