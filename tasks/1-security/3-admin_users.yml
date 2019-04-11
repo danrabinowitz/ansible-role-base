@@ -48,6 +48,8 @@
     owner: "{{ admin_username }}"
     group: "{{ admin_username }}"
     mode: 0400
+  remote_user: "{{ test_user is success | ternary(omit, 'root') }}"
+
 - name: Set the immutable bit to prevent changes to ~/.ssh and authorized_keys
   command: chattr +i /home/{{ admin_username }}/.ssh/authorized_keys /home/{{ admin_username }}/.ssh
   changed_when: False
