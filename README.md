@@ -8,7 +8,7 @@
 
 # TODO
 
-1. unattended upgrades
+1. Confirm that unattended upgrades is working
 
 https://help.ubuntu.com/lts/serverguide/automatic-updates.html.en
 https://www.howtoforge.com/tutorial/how-to-setup-automatic-security-updates-on-ubuntu-1604/
