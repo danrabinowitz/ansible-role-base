@@ -1,3 +1,8 @@
+- name: 'Require mandatory variables'
+  assert:
+    that:
+      - admin_username is defined
+
 - name: Determine if default user has access
   local_action: "command ssh -q -o BatchMode=yes -o ConnectTimeout=3 {{ inventory_hostname }} 'echo ok'"
   register: test_user
@@ -8,6 +13,7 @@
   ipify_facts:
   register: ansible_host_public_ip
   delegate_to: localhost
+  run_once: true
 
 - name: "Get Facts : Set ansible_host_public_ip"
   set_fact:
