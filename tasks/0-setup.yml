@@ -6,15 +6,18 @@
 
 # Check if admin_username has been set up yet
 - name: "setup : Determine if admin_username user has access"
-  local_action: "command ssh -q -o BatchMode=yes -o ConnectTimeout=3 -l {{ admin_username }} {{ inventory_hostname }} 'echo ok'"
+  local_action: "shell ssh -q -o ConnectTimeout=3 -l {{ admin_username }} {{ inventory_hostname }} 'echo -n'; echo $?"
   register: test_user
-  ignore_errors: true
   changed_when: false
 
 - name: "setup : Debug test_user"
   debug:
     var: test_user
-    verbosity: "1"
+    # verbosity: "1"
+
+- name: "setup : Set admin_username_has_access"
+  set_fact:
+     admin_username_has_access: test_user.foo
 
 - name: "setup : Report if admin user is not yet working."
   debug:
