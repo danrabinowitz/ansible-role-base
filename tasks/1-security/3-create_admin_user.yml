@@ -47,25 +47,25 @@
     dest: /home/{{ admin_username }}/.ssh/authorized_keys
     owner: "{{ admin_username }}"
     group: "{{ admin_username }}"
-    mode: 0400
+    mode: 0644  
   remote_user: "{{ test_user is success | ternary(omit, 'root') }}"
 
-- name: Set the immutable bit to prevent changes to ~/.ssh and authorized_keys
-  command: chattr +i /home/{{ admin_username }}/.ssh/authorized_keys /home/{{ admin_username }}/.ssh
-  changed_when: False
-  # At this early stage, we may not have created the real, custom admin account yet,
-  # so we may need to specify the remote_user to be root.
-  remote_user: "{{ test_user is success | ternary(omit, 'root') }}"
+# - name: Set the immutable bit to prevent changes to ~/.ssh and authorized_keys
+#   command: chattr +i /home/{{ admin_username }}/.ssh/authorized_keys /home/{{ admin_username }}/.ssh
+#   changed_when: False
+#   # At this early stage, we may not have created the real, custom admin account yet,
+#   # so we may need to specify the remote_user to be root.
+#   remote_user: "{{ test_user is success | ternary(omit, 'root') }}"
 
-- name: Install .google_authenticator
-  copy:
-    src: secrets/.google_authenticator
-    dest: /home/{{ admin_username }}/.google_authenticator
-    owner: "{{ admin_username }}"
-    group: "{{ admin_username }}"
-    mode: 0400
-  diff: False
-  no_log: True
+# - name: Install .google_authenticator
+#   copy:
+#     src: secrets/.google_authenticator
+#     dest: /home/{{ admin_username }}/.google_authenticator
+#     owner: "{{ admin_username }}"
+#     group: "{{ admin_username }}"
+#     mode: 0400
+#   diff: False
+#   no_log: True
   # At this early stage, we may not have created the real, custom admin account yet,
   # so we may need to specify the remote_user to be root.
   remote_user: "{{ test_user is success | ternary(omit, 'root') }}"
