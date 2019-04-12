@@ -17,7 +17,7 @@
 
 - name: "setup : Set admin_username_has_access"
   set_fact:
-     admin_username_has_access: "{{ test_admin_username_has_access.stdout == '0' | bool }}"
+     admin_username_has_access: test_admin_username_has_access.stdout == '0' | bool
 
 - name: "setup : Debug admin_username_has_access"
   debug:
