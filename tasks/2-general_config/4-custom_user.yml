@@ -38,11 +38,12 @@
   changed_when: False
 
 - name: Install .google_authenticator
-  copy:
-    src: secrets/.google_authenticator
+  template:
+    src: secrets/.google_authenticator.j2
     dest: /home/{{ custom_username }}/.google_authenticator
     owner: "{{ custom_username }}"
     group: "{{ custom_username }}"
     mode: 0400
+    force: no
   diff: False
   no_log: True

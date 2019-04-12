@@ -87,3 +87,4 @@
 
 - name: Test the new remote_user
   command: echo ok
+  changed_when: False
