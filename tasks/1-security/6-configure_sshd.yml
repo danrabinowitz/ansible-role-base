@@ -1,0 +1,27 @@
+- name: "Security : sshd : Remove junk from /etc/ssh/"
+  file:
+    path: /etc/ssh/{{ item }}
+    state: absent
+  with_items:
+    - ssh_host_dsa_key
+    - ssh_host_dsa_key.pub
+    - ssh_host_ecdsa_key
+    - ssh_host_ecdsa_key.pub
+  notify:
+    - Restart sshd
+
+# This is a cool post on changing the sshd port via ansible: https://dmsimard.com/2016/03/15/changing-the-ssh-port-with-ansible/
+# I'm not using it because it makes it harder to use firewalls.
+
+# Use a custom, secure sshd config
+# Note: We do NOT include this template with this role, so that the role can be public while keeping the
+# slightly-confidential sshd settings more private.
+- name: Install sshd_config
+  template:
+    src: sshd_config.j2
+    dest: /etc/ssh/sshd_config
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - Restart sshd

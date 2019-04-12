@@ -69,7 +69,7 @@
 - name: Debug google_authenticator_grace_period
   debug:
     var: google_authenticator_grace_period
-    # verbosity: "1"
+    verbosity: "1"
 
 - name: Install .google_authenticator
   template:

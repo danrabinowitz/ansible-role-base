@@ -1,39 +1,39 @@
-- name: 'Require mandatory variables'
+- name: 'setup : Require mandatory variables'
   assert:
     that:
       - admin_username is defined
     fail_msg: "One or more required variables are missing."
 
 # Check if admin_username has been set up yet
-- name: Determine if admin_username user has access
+- name: "setup : Determine if admin_username user has access"
   local_action: "command ssh -q -o BatchMode=yes -o ConnectTimeout=3 -l {{ admin_username }} {{ inventory_hostname }} 'echo ok'"
   register: test_user
   ignore_errors: true
   changed_when: false
 
-- name: Debug test_user
+- name: "setup : Debug test_user"
   debug:
     var: test_user
     verbosity: "1"
 
-- name: "Report if admin user is not yet working."
+- name: "setup : Report if admin user is not yet working."
   debug:
     msg: "Connections using admin user are not working yet. Using root briefly."
   when: test_user is not success
 
 # ansible_host_public_ip is needed for the firewall
-- name: "Get Facts : Get public IP address"
+- name: "setup : Get public IP address"
   ipify_facts:
     timeout: 10
   register: ansible_host_public_ip
   delegate_to: localhost
   run_once: true
 
-- name: "Get Facts : Set ansible_host_public_ip"
+- name: "setup : Set ansible_host_public_ip"
   set_fact:
      ansible_host_public_ip: "{{ ansible_host_public_ip.ansible_facts.ipify_public_ip }}"
 
-- name: Debug ansible_host_public_ip
+- name: "setup : Debug ansible_host_public_ip"
   debug:
     var: ansible_host_public_ip
     verbosity: "1"
