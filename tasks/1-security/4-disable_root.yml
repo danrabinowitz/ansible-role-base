@@ -1,3 +1,9 @@
+# `passwd -l` disables an account by changing the password to a value which matches no possible encrypted value.
+- name: "Security : sshd : Lock the password for the root user"
+  user:
+    name: root
+    password_lock: yes
+
 - name: Install enable_root_ssh
   copy:
     src: enable_root_ssh
@@ -11,13 +17,5 @@
     path: /etc/ssh/sshd_config
     regexp: '^PermitRootLogin '
     line: 'PermitRootLogin no'
-  notify:
-    - Restart sshd
-
-- name: Require 2FA
-  lineinfile:
-    path: /etc/ssh/sshd_config
-    regexp: '^AuthenticationMethods'
-    line: 'AuthenticationMethods publickey,keyboard-interactive'
   notify:
     - Restart sshd

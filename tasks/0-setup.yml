@@ -4,6 +4,7 @@
       - admin_username is defined
     fail_msg: "One or more required variables are missing."
 
+# Check if admin_username has been set up yet
 - name: Determine if admin_username user has access
   local_action: "command ssh -q -o BatchMode=yes -o ConnectTimeout=3 -l {{ admin_username }} {{ inventory_hostname }} 'echo ok'"
   register: test_user
@@ -20,6 +21,7 @@
     msg: "Connections using admin user are not working yet. Using root briefly."
   when: test_user is not success
 
+# ansible_host_public_ip is needed for the firewall
 - name: "Get Facts : Get public IP address"
   ipify_facts:
   register: ansible_host_public_ip
