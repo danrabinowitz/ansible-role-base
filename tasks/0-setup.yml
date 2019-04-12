@@ -6,7 +6,7 @@
 
 # Check if admin_username has been set up yet
 - name: "setup : Determine if admin_username user has access"
-  local_action: "shell ssh -o ConnectTimeout=3 -l {{ admin_username }} {{ inventory_hostname }} -- sudo sed -i \"'\"s/^AuthenticationMethods publickey,keyboard-interactive/AuthenticationMethods publickey/\"'\" /etc/ssh/sshd_config; echo $?"
+  local_action: "shell ssh -o ConnectTimeout=3 -l {{ admin_username }} {{ inventory_hostname }} -- sudo sed -i \"'\"s/^AuthenticationMethods publickey,keyboard-interactive/AuthenticationMethods publickey/\"'\" /etc/ssh/sshd_config \"'\"&& sudo service sshd restart\"'\"; echo $?"
   register: test_admin_username_has_access
   changed_when: false
 
