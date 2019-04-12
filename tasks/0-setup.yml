@@ -7,22 +7,27 @@
 # Check if admin_username has been set up yet
 - name: "setup : Determine if admin_username user has access"
   local_action: "shell ssh -q -o ConnectTimeout=3 -l {{ admin_username }} {{ inventory_hostname }} 'echo -n'; echo $?"
-  register: test_user
+  register: test_admin_username_has_access
   changed_when: false
 
-- name: "setup : Debug test_user"
+- name: "setup : Debug test_admin_username_has_access"
   debug:
-    var: test_user
+    var: test_admin_username_has_access
     # verbosity: "1"
 
 - name: "setup : Set admin_username_has_access"
   set_fact:
-     admin_username_has_access: test_user.foo
+     admin_username_has_access: test_admin_username_has_access.stdout == "0"
+
+- name: "setup : Debug admin_username_has_access"
+  debug:
+    var: admin_username_has_access
+    # verbosity: "1"
 
 - name: "setup : Report if admin user is not yet working."
   debug:
     msg: "Connections using admin user are not working yet. Using root briefly."
-  when: test_user is not success
+  when: not admin_username_has_access
 
 # ansible_host_public_ip is needed for the firewall
 - name: "setup : Get public IP address"
