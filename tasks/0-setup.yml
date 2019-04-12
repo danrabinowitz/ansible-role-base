@@ -13,11 +13,12 @@
 - name: "setup : Debug test_admin_username_has_access"
   debug:
     var: test_admin_username_has_access
-    # verbosity: "1"
+    verbosity: "1"
 
-- name: "---TEST---"
+- name: "setup : Debug test_admin_username_has_access"
   debug:
     var: test_admin_username_has_access.stdout
+    verbosity: "1"
 
 - name: "setup : Set admin_username_has_access"
   set_fact:
