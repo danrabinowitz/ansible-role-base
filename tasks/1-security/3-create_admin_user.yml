@@ -57,13 +57,28 @@
   # so we may need to specify the remote_user to be root.
   remote_user: "{{ test_user is success | ternary(omit, 'root') }}"
 
+- name: Get the value for the grace period
+  shell: "$(($(date +'%s') + 3600))"
+  register: google_authenticator_grace_period
+  changed_when: false
+
+- name: "Set google_authenticator_grace_period"
+  set_fact:
+     google_authenticator_grace_period: "{{ google_authenticator_grace_period.stdout }}"
+
+- name: Debug google_authenticator_grace_period
+  debug:
+    var: google_authenticator_grace_period
+    # verbosity: "1"
+
 - name: Install .google_authenticator
-  copy:
-    src: secrets/.google_authenticator
+  template:
+    src: secrets/.google_authenticator.j2
     dest: /home/{{ admin_username }}/.google_authenticator
     owner: "{{ admin_username }}"
     group: "{{ admin_username }}"
     mode: 0400
+    force: no
   diff: False
   no_log: True
   # At this early stage, we may not have created the real, custom admin account yet,

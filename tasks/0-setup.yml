@@ -24,6 +24,7 @@
 # ansible_host_public_ip is needed for the firewall
 - name: "Get Facts : Get public IP address"
   ipify_facts:
+    timeout: 10
   register: ansible_host_public_ip
   delegate_to: localhost
   run_once: true
