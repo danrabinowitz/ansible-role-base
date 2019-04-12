@@ -18,7 +18,8 @@
     groups: wheel
     append: yes
 
-- file:
+- name: Install .ssh for custom user
+  file:
     path: /home/{{ custom_username }}/.ssh
     state: directory
     owner: "{{ custom_username }}"
