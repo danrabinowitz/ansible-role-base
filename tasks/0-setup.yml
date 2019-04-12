@@ -32,7 +32,7 @@
 - name: "setup : Report if admin user is not yet working."
   debug:
     msg: "Connections using admin user are not working yet. Using root briefly."
-  when: not admin_username_has_accesszzzz
+  when: not admin_username_has_access
 
 # ansible_host_public_ip is needed for the firewall
 - name: "setup : Get public IP address"
