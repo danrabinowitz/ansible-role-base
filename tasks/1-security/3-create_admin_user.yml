@@ -58,7 +58,7 @@
   remote_user: "{{ test_user is success | ternary(omit, 'root') }}"
 
 - name: Get the value for the grace period
-  shell: "$(($(date +'%s') + 3600))"
+  shell: "echo $(($(date +'%s') + 3600))"
   register: google_authenticator_grace_period
   changed_when: false
 
