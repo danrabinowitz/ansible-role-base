@@ -2,20 +2,20 @@
 - include: 0-setup.yml
 - include: 1-security/0-main.yml
 
-##############################
-# General config
-##############################
-- include: postfix.yml
+# ##############################
+# # General config
+# ##############################
+# - include: postfix.yml
 
-- include: email_routing.yml
+# - include: email_routing.yml
 
-- include: package_cleanup.yml
+# - include: package_cleanup.yml
 
-- include: custom_user.yml
+# - include: custom_user.yml
 
-##############################
-# non-essential customization
-##############################
-- include: motd.yml
+# ##############################
+# # non-essential customization
+# ##############################
+# - include: motd.yml
 
-- include: personalize_root.yml
+# - include: personalize_root.yml
