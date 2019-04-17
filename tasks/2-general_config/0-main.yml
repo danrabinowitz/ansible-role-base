@@ -1,3 +1,5 @@
+- include: 1-gather_facts.yml
+
 - include: 1-postfix.yml
 
 - include: 2-email_routing.yml
@@ -5,3 +7,5 @@
 - include: 3-package_cleanup.yml
 
 - include: 4-custom_user.yml
+
+- include: 5-etc_hosts.yml

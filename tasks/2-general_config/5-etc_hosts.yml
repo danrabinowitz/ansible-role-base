@@ -1,0 +1,10 @@
+- name: Add private IP addresses of all hosts to all hosts
+  lineinfile:
+    dest: /etc/hosts
+    regexp: '.*{{ item }}$'
+    line: "{{ hostvars[item]['ansible_eth1']['ipv4']['address'] }} {{item}}"
+    state: present
+  when: hostvars[item]['ansible_eth1'] is defined
+  with_items: "{{ groups.all }}"
+  tags:
+    - wip
