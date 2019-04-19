@@ -1,0 +1,6 @@
+[DEFAULT]
+bantime = 5m
+findtime  = 10m
+maxretry = 10
+destemail = root@localhost
+action = action_mwl
