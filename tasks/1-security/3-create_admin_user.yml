@@ -61,17 +61,17 @@
   shell: "echo $(($(date +'%s') + 3600))"
   register: google_authenticator_grace_period
   changed_when: false
-  check_mode: no
 
 - name: "Set google_authenticator_grace_period"
   set_fact:
      google_authenticator_grace_period: "{{ google_authenticator_grace_period.stdout }}"
-  check_mode: no
+  when: not ansible_check_mode
 
 - name: Debug google_authenticator_grace_period
   debug:
     var: google_authenticator_grace_period
     verbosity: "1"
+  when: not ansible_check_mode
 
 - name: Install .google_authenticator
   template:
@@ -86,8 +86,8 @@
   # At this early stage, we may not have created the real, custom admin account yet,
   # so we may need to specify the remote_user to be root.
   remote_user: "{{ admin_username_has_access | ternary(omit, 'root') }}"
+  when: not ansible_check_mode
 
 - name: Test the new remote_user
   command: echo ok
   changed_when: False
-  check_mode: no
