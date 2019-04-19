@@ -25,5 +25,6 @@
     mode: 0644
   notify:
     - Restart sshd
+  check_mode: no
   tags:
     - temporarily_disable_2fa
