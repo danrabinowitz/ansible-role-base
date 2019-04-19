@@ -26,5 +26,6 @@
   notify:
     - Restart sshd
   check_mode: no
+  changed_when: False
   tags:
     - temporarily_disable_2fa
