@@ -59,14 +59,15 @@
 
 - name: Get the value for the grace period
   shell: "echo $(($(date +'%s') + 3600))"
+  check_mode: no
   register: google_authenticator_grace_period
   changed_when: false
 
 - name: "Set google_authenticator_grace_period"
   set_fact:
     google_authenticator_grace_period: "{{ google_authenticator_grace_period.stdout }}"
-  check_mode: no
-  when: not ansible_check_mode
+  # check_mode: no
+  # when: not ansible_check_mode
 
 - name: Debug google_authenticator_grace_period
   debug:
