@@ -64,7 +64,8 @@
 
 - name: "Set google_authenticator_grace_period"
   set_fact:
-     google_authenticator_grace_period: "{{ google_authenticator_grace_period.stdout }}"
+    google_authenticator_grace_period: "{{ google_authenticator_grace_period.stdout }}"
+  check_mode: no
   when: not ansible_check_mode
 
 - name: Debug google_authenticator_grace_period
