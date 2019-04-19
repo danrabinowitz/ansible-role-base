@@ -63,11 +63,20 @@
   register: google_authenticator_grace_period
   changed_when: false
 
+
+
+- name: Test the new remote_user
+  command: echo ok
+  changed_when: False
+
+
+
+
 - name: "Set google_authenticator_grace_period"
   set_fact:
     google_authenticator_grace_period: "{{ google_authenticator_grace_period.stdout }}"
-  # check_mode: no
-  # when: not ansible_check_mode
+  check_mode: no
+  when: not ansible_check_mode
 
 - name: Debug google_authenticator_grace_period
   debug:
