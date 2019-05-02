@@ -6,6 +6,8 @@
 
 - include: 3-package_cleanup.yml
 
+- include: 3b-do-agent.yml
+
 - include: 4-custom_user.yml
 
 - include: 5-etc_hosts.yml
