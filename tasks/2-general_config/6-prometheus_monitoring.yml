@@ -1,0 +1,16 @@
+- name: Install prometheus-node-exporter
+  apt:
+    name: prometheus-node-exporter
+    state: present
+    update_cache: yes
+    cache_valid_time: 3600
+    install_recommends: no
+
+- name: "Allow access to node exporter from prometheus server's private ip only"
+  ufw:
+    rule: allow
+    port: "9100"
+    proto: tcp
+    from_ip: "{{ utility1_djrtechconsulting_com_private_ip }}"
+    direction: in
+    interface: eth1
