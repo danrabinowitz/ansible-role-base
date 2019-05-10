@@ -15,6 +15,6 @@
     proto: tcp
     from_ip: "{{ utility1_djrtechconsulting_com_public_ip }}"
     direction: in
-    interface: eth1
+    interface: eth0
   tags:
     - wip
