@@ -8,7 +8,7 @@
   tags:
     - wip
 
-- name: "Allow access to node exporter from prometheus server's private ip only"
+- name: "Allow access to node exporter from prometheus server's public ip only and only via eth0"
   ufw:
     rule: allow
     port: "9100"
