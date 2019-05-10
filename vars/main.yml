@@ -1,2 +1,2 @@
 # TODO: Fetch this via a script that curls an endpoint on the utility1 node which returns private ips
-utility1_djrtechconsulting_com_private_ip: "10.132.58.223"
+utility1_djrtechconsulting_com_public_ip: "134.209.40.30"

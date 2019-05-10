@@ -13,7 +13,7 @@
     rule: allow
     port: "9100"
     proto: tcp
-    from_ip: "{{ utility1_djrtechconsulting_com_private_ip }}"
+    from_ip: "{{ utility1_djrtechconsulting_com_public_ip }}"
     direction: in
     interface: eth1
   tags:
