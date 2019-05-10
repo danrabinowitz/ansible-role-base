@@ -5,8 +5,6 @@
     update_cache: yes
     cache_valid_time: 3600
     install_recommends: no
-  tags:
-    - wip
 
 - name: "Allow access to node exporter from prometheus server's public ip only and only via eth0"
   ufw:
@@ -16,5 +14,3 @@
     from_ip: "{{ utility1_djrtechconsulting_com_public_ip }}"
     direction: in
     interface: eth0
-  tags:
-    - wip
