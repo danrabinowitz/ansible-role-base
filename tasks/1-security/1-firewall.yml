@@ -35,7 +35,7 @@
     proto: tcp
     from_ip: "{{ item }}"
     direction: in
-  with_items: ips_from_which_ssh_is_allowed
+  with_items: "{{ ips_from_which_ssh_is_allowed }}"
   when: not(
           (ips_from_which_ssh_is_allowed is undefined)
         )
