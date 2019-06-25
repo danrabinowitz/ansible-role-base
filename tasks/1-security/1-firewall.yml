@@ -28,6 +28,22 @@
   # so we may need to specify the remote_user to be root.
   remote_user: "{{ admin_username_has_access | ternary(omit, 'root') }}"
 
+- name: "Security : Firewall : Allow ssh access from additional IPs"
+  ufw:
+    rule: allow
+    port: ssh
+    proto: tcp
+    from_ip: "{{ item }}"
+    direction: in
+  with_items: ips_from_which_ssh_is_allowed
+  when: not(
+          (ips_from_which_ssh_is_allowed is undefined)
+        )
+  # At this early stage, we may not have created the real, custom admin account yet,
+  # so we may need to specify the remote_user to be root.
+  remote_user: "{{ admin_username_has_access | ternary(omit, 'root') }}"
+
+
 - name: "Security : Firewall : Enable ufw ASAP"
   ufw:
     state: enabled
