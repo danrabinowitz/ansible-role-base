@@ -31,11 +31,11 @@
 # Configure
 - name: "VPN: Wireguard: Debug: ansible_fqdn"
   debug:
-    var: ansible_fqdn
+    var: ansible_facts['ansible_fqdn']
     # verbosity: "1"
 - name: "VPN: Wireguard: Debug: wireguard_ip_addresses[ansible_fqdn]"
   debug:
-    var: wireguard_ip_addresses[ansible_fqdn]
+    var: wireguard_ip_addresses[ansible_facts['ansible_fqdn']]
     # verbosity: "1"
 
 - name: "VPN: Wireguard: Create config template"
