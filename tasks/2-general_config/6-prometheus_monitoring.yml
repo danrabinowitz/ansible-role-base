@@ -14,3 +14,12 @@
     from_ip: "{{ utility1_djrtechconsulting_com_public_ip }}"
     direction: in
     interface: eth0
+
+- name: "Allow access to node exporter from prometheus server's vpn ip only and only via vpn"
+  ufw:
+    rule: allow
+    port: "9100"
+    proto: tcp
+    from_ip: "10.0.0.1"
+    direction: in
+    interface: wg0
