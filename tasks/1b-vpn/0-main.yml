@@ -80,7 +80,7 @@
   register: config_stat
 
 
-- name: Make sure a service is running
+- name: Make sure wireguard is running
   systemd:
     state: started
     name: "wg-quick@wg0"
