@@ -27,7 +27,7 @@ ARGS=""
 [ -r /etc/default/$NAME ] && . /etc/default/$NAME
 
 HELPER=/usr/bin/daemon
-HELPER_ARGS="--collector.textfile.directory=/var/lib/node_exporter/textfile_collector --name=$NAME --output=$LOGFILE --pidfile=$PIDFILE --user=$USER"
+HELPER_ARGS="--name=$NAME --output=$LOGFILE --pidfile=$PIDFILE --user=$USER"
 
 do_start_prepare()
 {
