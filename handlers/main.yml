@@ -11,3 +11,6 @@
 
 - name: Restart fail2ban
   service: name=fail2ban state=restarted
+
+- name: Restart prometheus-node-exporter
+  service: name=prometheus-node-exporter state=restarted

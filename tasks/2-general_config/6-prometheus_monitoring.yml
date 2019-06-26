@@ -23,3 +23,22 @@
     from_ip: "10.0.0.1"
     direction: in
     interface: wg0
+
+- name: Create textfile_collector dir
+  file:
+    path: "/var/lib/{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+  with_items:
+    - node_exporter
+    - node_exporter/textfile_collector
+
+- name: Update /etc/init.d/prometheus-node-exporter to use textfile_collector
+  lineinfile:
+    path: /etc/init.d/prometheus-node-exporter
+    regexp: 'HELPER_ARGS="--name=$NAME --output=$LOGFILE --pidfile=$PIDFILE --user=$USER"'
+    line: 'HELPER_ARGS="--collector.textfile.directory=/var/lib/node_exporter/textfile_collector --name=$NAME --output=$LOGFILE --pidfile=$PIDFILE --user=$USER"'
+  notify:
+    - Restart prometheus-node-exporter
