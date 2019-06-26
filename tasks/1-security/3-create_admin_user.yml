@@ -50,13 +50,6 @@
     mode: 0644  
   remote_user: "{{ admin_username_has_access | ternary(omit, 'root') }}"
 
-- name: Set the immutable bit to prevent changes to ~/.ssh and authorized_keys
-  command: chattr +i /home/{{ admin_username }}/.ssh/authorized_keys /home/{{ admin_username }}/.ssh
-  changed_when: False
-  # At this early stage, we may not have created the real, custom admin account yet,
-  # so we may need to specify the remote_user to be root.
-  remote_user: "{{ admin_username_has_access | ternary(omit, 'root') }}"
-
 - name: Get the value for the grace period
   shell: "echo $(($(date +'%s') + 3600))"
   check_mode: no

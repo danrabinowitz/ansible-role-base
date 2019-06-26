@@ -18,9 +18,6 @@
     owner: "{{ custom_username }}"
     group: "{{ custom_username }}"
     mode: 0644
-- name: Set the immutable bit to prevent changes to ~/.ssh and authorized_keys
-  command: chattr +i /home/{{ custom_username }}/.ssh/authorized_keys /home/{{ custom_username }}/.ssh
-  changed_when: False
 
 - name: Install .google_authenticator
   template:
