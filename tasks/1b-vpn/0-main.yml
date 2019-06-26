@@ -5,6 +5,10 @@
     state: present
     update_cache: yes
 
+- name: Run the equivalent of "apt-get update" as a separate step
+  apt:
+    update_cache: yes
+
 - name: "VPN: Wireguard: Install WireGuard"
   package:
     name: "{{ item }}"
