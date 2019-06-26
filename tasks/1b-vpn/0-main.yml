@@ -1,3 +1,13 @@
+- name: Collect some minimal facts
+  setup:
+    gather_subset:
+      # - '!all'
+      # - network
+      # - hardware
+      # - virtual
+      - all
+
+
 # Install
 # - name: "VPN : Wireguard : Add repository"
 #   apt_repository:
