@@ -4,7 +4,7 @@ ListenPort = 51820
 SaveConfig = true
 Address = {{ wireguard_ip_addresses[ansible_fqdn] }}
 
-{% if wireguard_peer is defined %}
+{% if wireguard_peer is defined and wireguard_publickey['content'] != wireguard_peer['PublicKey'] %}
 [Peer]
 PublicKey = {{ wireguard_peer['PublicKey'] }}
 AllowedIPs = {{ wireguard_peer['AllowedIPs'] }}

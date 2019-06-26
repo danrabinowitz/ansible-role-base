@@ -30,6 +30,11 @@
 #   diff: False
 #   no_log: True
 
+- name: "VPN: Wireguard: Get public key"
+  slurp:
+    src: /etc/wireguard/publickey
+  register: wireguard_publickey
+
 # Configure
 - name: "VPN: Wireguard: Debug: ansible_fqdn"
   debug:
