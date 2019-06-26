@@ -2,7 +2,7 @@
 PrivateKey = ${PrivateKey}
 ListenPort = 51820
 SaveConfig = true
-Address = {{ wireguard_ip_addresses[hostvars[item]['ansible_fqdn']] }}
+Address = {{ wireguard_ip_addresses[ansible_fqdn] }}
 
 {% if wireguard_peer is defined %}
 [Peer]

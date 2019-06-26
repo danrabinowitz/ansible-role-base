@@ -1,5 +1,3 @@
-- include: 1-gather_facts.yml
-
 - include: 1-postfix.yml
 
 - include: 2-email_routing.yml

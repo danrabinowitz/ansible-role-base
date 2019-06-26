@@ -1,0 +1,6 @@
+# Needed for VPN
+- name: Collect some minimal facts
+  setup:
+    gather_subset:
+      - '!all'
+      - network

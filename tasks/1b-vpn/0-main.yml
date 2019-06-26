@@ -1,12 +1,4 @@
-- name: Collect some minimal facts
-  setup:
-    gather_subset:
-      - '!all'
-      - network
-      # - hardware
-      # - virtual
-      # - all
-
+- include: 1-gather_facts.yml
 
 # Install
 # - name: "VPN : Wireguard : Add repository"
