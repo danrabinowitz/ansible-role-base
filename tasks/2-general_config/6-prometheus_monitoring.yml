@@ -36,9 +36,11 @@
     - node_exporter/textfile_collector
 
 - name: Update /etc/init.d/prometheus-node-exporter to use textfile_collector
-  lineinfile:
-    path: /etc/init.d/prometheus-node-exporter
-    regexp: 'HELPER_ARGS="--name=$NAME --output=$LOGFILE --pidfile=$PIDFILE --user=$USER"'
-    line: 'HELPER_ARGS="--collector.textfile.directory=/var/lib/node_exporter/textfile_collector --name=$NAME --output=$LOGFILE --pidfile=$PIDFILE --user=$USER"'
+  copy:
+    src: etc/init.d/prometheus-node-exporter
+    dest: /etc/init.d/prometheus-node-exporter
+    owner: root
+    group: root
+    mode: 0755
   notify:
     - Restart prometheus-node-exporter
