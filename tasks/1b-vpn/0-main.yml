@@ -58,8 +58,8 @@
 
 - name: "VPN: Wireguard: Create config"
   shell: "PrivateKey=$(cat /etc/wireguard/privatekey) envsubst '$PrivateKey' < /etc/wireguard/wg0.conf.template > /etc/wireguard/wg0.conf"
-  args:
-    creates: "/etc/wireguard/wg0.conf"
+  # args:
+  #   creates: "/etc/wireguard/wg0.conf"
   diff: False
   no_log: True
   when: not(
