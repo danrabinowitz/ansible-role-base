@@ -29,6 +29,15 @@
   no_log: True
 
 # Configure
+- name: "VPN: Wireguard: Debug: ansible_fqdn"
+  debug:
+    var: ansible_fqdn
+    # verbosity: "1"
+- name: "VPN: Wireguard: Debug: wireguard_ip_addresses[ansible_fqdn]"
+  debug:
+    var: wireguard_ip_addresses[ansible_fqdn]
+    # verbosity: "1"
+
 - name: "VPN: Wireguard: Create config template"
   template:
     src: "etc/wireguard/wg0.conf.template.j2"
@@ -37,7 +46,7 @@
     group: "root"
     mode: 0400
   when: not(
-          (wireguard_ip_addresses[hostvars[item]['ansible_fqdn']] is undefined)
+          (wireguard_ip_addresses[ansible_fqdn] is undefined)
         )
 
 - name: "VPN: Wireguard: Create config"
@@ -47,7 +56,7 @@
   diff: False
   no_log: True
   when: not(
-          (wireguard_ip_addresses[hostvars[item]['ansible_fqdn']] is undefined)
+          (wireguard_ip_addresses[ansible_fqdn] is undefined)
         )
 
 # Open port in VPN
