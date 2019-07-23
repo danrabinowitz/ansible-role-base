@@ -11,9 +11,6 @@
     group: "{{ custom_username }}"
     mode: 0755
 
-- name: Remove the immutable bit to allow changes to ~/.ssh and authorized_keys
-  command: chattr -i /home/{{ custom_username }}/.ssh/authorized_keys /home/{{ custom_username }}/.ssh
-  changed_when: False
 - name: Install authorized_keys
   copy:
     src: .ssh/authorized_keys
