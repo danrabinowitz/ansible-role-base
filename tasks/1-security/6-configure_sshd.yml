@@ -10,9 +10,6 @@
   notify:
     - Restart sshd
 
-# This is a cool post on changing the sshd port via ansible: https://dmsimard.com/2016/03/15/changing-the-ssh-port-with-ansible/
-# I'm not using it because it makes it harder to use firewalls.
-
 # Use a custom, secure sshd config
 # Note: We do NOT include this template with this role, so that the role can be public while keeping the
 # slightly-confidential sshd settings more private.
@@ -27,5 +24,3 @@
     - Restart sshd
   check_mode: no
   changed_when: False
-  tags:
-    - temporarily_disable_2fa

@@ -1,16 +1,24 @@
-- name: "Security : Firewall : Allow ssh access from current ansible host's public ip, so we don't lock ourselves out"
+- name: "Security : Firewall: Allow wireguard traffic"
+  ufw:
+    rule: allow
+    port: "51820"
+    proto: udp
+    direction: in
+
+- name: "Security : Firewall : Allow ssh access over wireguard"
   ufw:
     rule: allow
     port: ssh
     proto: tcp
-    from_ip: "{{ ansible_host_public_ip }}"
     direction: in
-    interface: eth0
-  # At this early stage, we may not have created the real, custom admin account yet,
-  # so we may need to specify the remote_user to be root.
-  remote_user: "{{ admin_username_has_access | ternary(omit, 'root') }}"
+    interface: wg0
+    from_ip: "{{ item }}"
+  with_items: "{{ ips_from_which_ssh_is_allowed_via_wireguard }}"
+  when: not(
+          (ips_from_which_ssh_is_allowed_via_wireguard is undefined)
 
-- name: "Security : Firewall : Allow ssh access from jumphost's ip"
+# This is blocked by DO firewall. But could be opened for recovery purposes if wireguard fails.
+- name: "Security : Firewall : Allow ssh access from jumphost's ip. This should never be used, but is a good backup in case wireguard fails."
   ufw:
     rule: allow
     port: ssh
@@ -24,41 +32,6 @@
           or
           (jumphost_ip | trim == '')
         )
-  # At this early stage, we may not have created the real, custom admin account yet,
-  # so we may need to specify the remote_user to be root.
-  remote_user: "{{ admin_username_has_access | ternary(omit, 'root') }}"
-
-- name: "Security : Firewall : Allow ssh access from additional IPs"
-  ufw:
-    rule: allow
-    port: ssh
-    proto: tcp
-    from_ip: "{{ item }}"
-    direction: in
-  with_items: "{{ ips_from_which_ssh_is_allowed }}"
-  when: not(
-          (ips_from_which_ssh_is_allowed is undefined)
-        )
-  # At this early stage, we may not have created the real, custom admin account yet,
-  # so we may need to specify the remote_user to be root.
-  remote_user: "{{ admin_username_has_access | ternary(omit, 'root') }}"
-
-- name: "Security : Firewall : Allow ssh access to certain ips via wireguard"
-  ufw:
-    rule: allow
-    port: ssh
-    proto: tcp
-    from_ip: "{{ item }}"
-    direction: in
-    interface: wg0
-  with_items: "{{ ips_from_which_ssh_is_allowed_via_wireguard }}"
-  when: not(
-          (ips_from_which_ssh_is_allowed_via_wireguard is undefined)
-        )
-  # At this early stage, we may not have created the real, custom admin account yet,
-  # so we may need to specify the remote_user to be root.
-  remote_user: "{{ admin_username_has_access | ternary(omit, 'root') }}"
-
 
 - name: "Security : Firewall : Enable ufw ASAP"
   ufw:
@@ -66,6 +39,3 @@
     policy: deny
     logging: low
     direction: incoming
-  # At this early stage, we may not have created the real, custom admin account yet,
-  # so we may need to specify the remote_user to be root.
-  remote_user: "{{ admin_username_has_access | ternary(omit, 'root') }}"

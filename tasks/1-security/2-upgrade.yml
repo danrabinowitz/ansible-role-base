@@ -5,16 +5,10 @@
     update_cache: yes
     install_recommends: no
     force_apt_get: yes
-  # At this early stage, we may not have created the real, custom admin account yet,
-  # so we may need to specify the remote_user to be root.
-  remote_user: "{{ admin_username_has_access | ternary(omit, 'root') }}"
 
 # 9May2019: I am disabling this for now, because I have concerns related to the DB outages. Test on a dummy system.
 - name: "Security : Upgrade : Upgrade APT to the latest packages"
   apt:
     upgrade: safe
-  # At this early stage, we may not have created the real, custom admin account yet,
-  # so we may need to specify the remote_user to be root.
-  remote_user: "{{ admin_username_has_access | ternary(omit, 'root') }}"
 # 9May2019: I am disabling this for now, because I have concerns related to the DB outages. Test on a dummy system.
   when: False

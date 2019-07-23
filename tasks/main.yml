@@ -1,5 +1,4 @@
 - include: 0-setup.yml
 - include: 1-security/0-main.yml
-- include: 1b-vpn/0-main.yml
 - include: 2-general_config/0-main.yml
 - include: 3-customization/0-main.yml

@@ -1,3 +1,1 @@
 - include: 10-motd.yml
-
-- include: 20-personalize_root.yml
