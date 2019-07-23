@@ -16,6 +16,7 @@
   with_items: "{{ ips_from_which_ssh_is_allowed_via_wireguard }}"
   when: not(
           (ips_from_which_ssh_is_allowed_via_wireguard is undefined)
+        )
 
 # This is blocked by DO firewall. But could be opened for recovery purposes if wireguard fails.
 - name: "Security : Firewall : Allow ssh access from jumphost's ip. This should never be used, but is a good backup in case wireguard fails."
