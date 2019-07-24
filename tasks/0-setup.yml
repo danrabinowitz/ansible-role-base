@@ -10,6 +10,8 @@
     path: /root/.ansible/cp
     state: directory
     mode: '0700'
+  changed_when: false
+  check_mode: no
   tags:
     - always
 
