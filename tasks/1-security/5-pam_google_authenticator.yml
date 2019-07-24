@@ -41,3 +41,12 @@
     line: 'auth required pam_google_authenticator.so nullok grace_period=3600'
   notify:
     - Restart sshd
+
+# # This doesn't seem to help with anything, so keeping it disabled for now.
+# - name: "Update /etc/pam.d/sshd to include pam_permit.so per the README message here: https://github.com/google/google-authenticator-libpam/commit/5e804ec11104a1ab17ce02d0681130ded037f39b"
+#   lineinfile:
+#     path: /etc/pam.d/sshd
+#     regexp: '^auth required pam_permit.so'
+#     line: 'auth required pam_permit.so'
+#   notify:
+#     - Restart sshd
