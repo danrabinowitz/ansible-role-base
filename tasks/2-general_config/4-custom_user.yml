@@ -28,4 +28,3 @@
     mode: 0400
     force: no
   diff: False
-  no_log: True
