@@ -1,7 +1,7 @@
 - name: Add custom user
   user:
     name: "{{ custom_username }}"
-    shell: /bin/bash
+    shell: "{{ custom_username_shell | default('/bin/bash')}}"
 
 - name: Install .ssh for custom user
   file:
