@@ -4,11 +4,16 @@
       - admin_username is defined
     fail_msg: "One or more required variables are missing."
 
+- name: Create ssh control directory if it does not exist
+  local_action:
+    module: file
+    path: /root/.ansible/cp
+    state: directory
+    mode: '0700'
+
 # Not certain what's going on, but running this seems to allow subsequent ansible ssh connections to succeed.
 - name: "setup : Connect directly via ssh to enable subsequent ansible ssh connections"
-  local_action: 
-    shell: "mkdir -p /root/.ansible/cp && ssh -o ControlMaster=auto -o ControlPersist=1800s -o 'User=\"{{ admin_username }}\"' -o ConnectTimeout=10 -o ControlPath=/root/.ansible/cp/aaf3b5c08f {{ inventory_hostname }} '/bin/sh -c '\"'\"'echo ~{{ admin_username }} && sleep 0'\"'\"''"
-    warn: false
+  local_action: "shell ssh -o ControlMaster=auto -o ControlPersist=1800s -o 'User=\"{{ admin_username }}\"' -o ConnectTimeout=10 -o ControlPath=/root/.ansible/cp/aaf3b5c08f {{ inventory_hostname }} '/bin/sh -c '\"'\"'echo ~{{ admin_username }} && sleep 0'\"'\"''"
   changed_when: false
   check_mode: no
   tags:
