@@ -1,0 +1,85 @@
+- set_fact:
+    wireguard_peer_machine_names: "{{ wireguard_peer_machine_names_core | union(wireguard_peer_machine_names_additional_for_group) | difference( [ hostvars[inventory_hostname]['do_name'] ] ) }}"
+  check_mode: no
+  tags:
+    - wip
+
+- name: Convert names to wg ips
+  local_action: "shell echo '{{ wireguard_peer_machine_names | join('\n')}}' | ../bin/names_to_wg_ips"
+  changed_when: false
+  check_mode: no
+  register: wireguard_peer_ip_conversion
+  tags:
+    - wip
+
+- set_fact:
+    wireguard_peer_vpn_ips: "{{ wireguard_peer_ip_conversion.stdout_lines }}"
+  check_mode: no
+  tags:
+    - wip
+
+- name: Get wg ips of all peers
+  shell: "wg showconf wg0 | grep '^AllowedIPs ' | awk '{print $3}' | cut -d/ -f1"
+  changed_when: false
+  check_mode: no
+  register: get_current_wireguard_peer_ips
+  tags:
+    - wip
+
+- set_fact:
+    wireguard_peer_vpn_ips_current: "{{ get_current_wireguard_peer_ips.stdout_lines }}"
+  check_mode: no
+  tags:
+    - wip
+
+- set_fact:
+    wireguard_peer_vpn_ips_to_add: "{{ wireguard_peer_vpn_ips | difference(wireguard_peer_vpn_ips_current) }}"
+  check_mode: no
+  tags:
+    - wip
+
+- name: wireguard_peer_vpn_ips_to_add
+  debug:
+    msg: "{{ wireguard_peer_vpn_ips_to_add }}"
+    # verbosity: "1"
+  check_mode: no
+  tags:
+    - wip
+
+- set_fact:
+    wireguard_peer_vpn_ips_to_remove: "{{ wireguard_peer_vpn_ips_current | difference(wireguard_peer_vpn_ips) }}"
+  check_mode: no
+  tags:
+    - wip
+- name: wireguard_peer_vpn_ips_to_remove
+  debug:
+    msg: "{{ wireguard_peer_vpn_ips_to_remove }}"
+    # verbosity: "1"
+  check_mode: no
+  tags:
+    - wip
+
+- name: Get wg add peer commands
+  local_action: "shell echo '{{ wireguard_peer_vpn_ips_to_add | join('\n')}}' | ../bin/wg_ips_to_add_peer_commands"
+  changed_when: false
+  check_mode: no
+  register: get_wireguard_add_peer_commands
+  tags:
+    - wip
+  when: (wireguard_peer_vpn_ips_to_add | length>0)
+
+- name: get_wireguard_add_peer_commands
+  debug:
+    msg: "{{ get_wireguard_add_peer_commands }}"
+    # verbosity: "1"
+  check_mode: no
+  tags:
+    - wip
+  when: (wireguard_peer_vpn_ips_to_add | length>0)
+
+- name: Add wg peers
+  shell: "{{ item }}"
+  with_items: "{{ get_wireguard_add_peer_commands.stdout_lines }}"
+  tags:
+    - wip
+  when: (wireguard_peer_vpn_ips_to_add | length>0)
