@@ -10,6 +10,8 @@
     path: /root/.ansible/cp
     state: directory
     mode: '0700'
+  tags:
+    - always
 
 # Not certain what's going on, but running this seems to allow subsequent ansible ssh connections to succeed.
 - name: "setup : Connect directly via ssh to enable subsequent ansible ssh connections"
