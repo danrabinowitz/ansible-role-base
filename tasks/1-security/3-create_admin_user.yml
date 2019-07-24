@@ -50,6 +50,4 @@
     group: "{{ admin_username }}"
     mode: 0400
     force: no
-  diff: False
-  no_log: True
   when: not ansible_check_mode

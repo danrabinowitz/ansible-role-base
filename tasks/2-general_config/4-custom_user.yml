@@ -27,5 +27,4 @@
     group: "{{ custom_username }}"
     mode: 0400
     force: no
-  diff: False
-  check_mode: no
+  when: not ansible_check_mode
