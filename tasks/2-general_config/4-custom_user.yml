@@ -28,3 +28,4 @@
     mode: 0400
     force: no
   diff: False
+  check_mode: no
