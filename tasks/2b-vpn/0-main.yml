@@ -59,3 +59,7 @@
   shell: "{{ item }}"
   with_items: "{{ get_wireguard_add_peer_commands.stdout_lines }}"
   when: (wireguard_peer_vpn_ips_to_add | length>0)
+
+- name: Save and restart wg
+  shell: "wg-quick save wg0 && wg-quick down wg0 && wg-quick up wg0"
+  when: (wireguard_peer_vpn_ips_to_add | length>0)
