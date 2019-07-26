@@ -1,0 +1,29 @@
+- name: ensure do-agent apt repository public key is installed
+  apt_key:
+    url: https://repos.insights.digitalocean.com/sonar-agent.asc
+    state: present
+
+- name: ensure old do-agent apt repository is removed
+  apt_repository:
+    repo: deb https://repos.sonar.digitalocean.com/apt main main
+    filename: digitalocean-agent
+    update_cache: true
+    state: absent
+
+- name: ensure do-agent apt repository is enabled
+  apt_repository:
+    repo: deb https://repos.insights.digitalocean.com/apt/do-agent main main
+    filename: digitalocean-agent
+    update_cache: true
+    state: present
+
+- name: ensure latest do-agent packages are installed
+  package:
+    name: do-agent
+    state: latest
+
+- name: ensure do-agent service is started and enabled
+  service:
+    name: do-agent
+    enabled: true
+    state: started
