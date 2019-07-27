@@ -1,5 +1,5 @@
-- name: Disable do-agent daily cron job
-  lineinfile:
-    path: /etc/cron.daily/do-agent
-    regexp: '^#?/bin/bash'
-    line: '#/bin/bash /opt/digitalocean/do-agent/scripts/update.sh'
+# - name: Disable do-agent daily cron job
+#   lineinfile:
+#     path: /etc/cron.daily/do-agent
+#     regexp: '^#?/bin/bash'
+#     line: '#/bin/bash /opt/digitalocean/do-agent/scripts/update.sh'
