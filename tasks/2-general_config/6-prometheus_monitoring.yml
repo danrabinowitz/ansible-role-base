@@ -55,3 +55,13 @@
     mode: 0755
   notify:
     - Restart prometheus-node-exporter
+
+- name: Fix args for prometheus-node-exporter
+  copy:
+    src: etc/default/prometheus-node-exporter
+    dest: /etc/default/prometheus-node-exporter
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - Restart prometheus-node-exporter
