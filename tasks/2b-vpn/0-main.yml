@@ -18,6 +18,12 @@
   check_mode: no
   register: get_current_wireguard_peer_ips
 
+- name: get_current_wireguard_peer_ips
+  debug:
+    msg: "{{ get_current_wireguard_peer_ips }}"
+    # verbosity: "1"
+  check_mode: no
+
 - set_fact:
     wireguard_peer_vpn_ips_current: "{{ get_current_wireguard_peer_ips.stdout_lines }}"
   check_mode: no
