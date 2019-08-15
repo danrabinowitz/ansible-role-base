@@ -1,9 +1,3 @@
-# - set_fact:
-#     wireguard_peer_machine_names: "{{ wireguard_peer_machine_names_core | union(wireguard_peer_machine_names_additional_for_group) | difference( [ hostvars[inventory_hostname]['do_name'] ] ) }}"
-#   check_mode: no
-#   tags:
-#     - wip
-
 - name: Convert peer names to host entries
   local_action: "shell echo '{{ wireguard_peer_machine_names | join('\n')}}' | ../bin/names_to_etc_host_entries"
   changed_when: false
