@@ -14,3 +14,14 @@
     mode: 0600
   notify:
     - Restart fail2ban
+
+# Default Ubuntu 18 file is missing a regex per https://serverfault.com/a/962997
+- name: Add regex to fail2ban sshd config per https://serverfault.com/a/962997
+  copy:
+    src: etc/fail2ban/filter.d/sshd.conf
+    dest: /etc/fail2ban/filter.d/sshd.conf
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - Restart fail2ban
