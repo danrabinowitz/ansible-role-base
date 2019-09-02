@@ -22,7 +22,7 @@
     mode: 0644
   notify:
     - Restart sshd
-  check_mode: no
-  changed_when: False
+  # check_mode: no
+  # changed_when: False
   tags:
     - sshd
