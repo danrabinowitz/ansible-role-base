@@ -24,3 +24,5 @@
     - Restart sshd
   check_mode: no
   changed_when: False
+  tags:
+    - sshd
