@@ -1,4 +1,6 @@
 - include: 1-wireguard.yml
+  tags:
+    - wireguard
 - include: 2-etc_hosts.yml
   tags:
     - etc_hosts
