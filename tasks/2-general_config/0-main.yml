@@ -13,3 +13,5 @@
 - include: 6-prometheus_monitoring.yml
 
 - include: 7-digitalocean_monitoring.yml
+
+- include: 8-login-tracking.yml

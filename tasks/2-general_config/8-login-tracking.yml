@@ -1,0 +1,20 @@
+- name: Copy track-login
+  copy:
+    src: usr/local/sbin/track-login
+    dest: /usr/local/sbin/track-login
+    owner: root
+    group: root
+    mode: 0700
+  tags:
+    - track_login
+
+- name: Tell PAM to run track-login
+  lineinfile:
+    path: "{{ item }}"
+    regexp: '/usr/local/sbin/track-login'
+    line: "session    optional     pam_exec.so /usr/local/bin/notify-login"
+  with_items:
+    - /etc/pam.d/common-session
+    - /etc/pam.d/sudo
+  tags:
+    - track_login
