@@ -12,7 +12,7 @@
   lineinfile:
     path: "{{ item }}"
     regexp: '/usr/local/sbin/track-login'
-    line: "session    optional     pam_exec.so /usr/local/bin/notify-login"
+    line: "session optional        pam_exec.so /usr/local/sbin/track-login"
   with_items:
     - /etc/pam.d/common-session
     - /etc/pam.d/sudo
