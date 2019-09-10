@@ -20,3 +20,5 @@
 # fail2ban is not needed until we open the firewall to services, so this can be near
 # the end of the security section.
 - include: 8-fail2ban.yml
+  tags:
+    - fail2ban
