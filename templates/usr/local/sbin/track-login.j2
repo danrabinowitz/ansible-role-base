@@ -1,14 +1,14 @@
 #!/bin/sh
 
+# No need to continue if we are logging in with specific ip or username
+{{ track_login_skip_alert_sh | default('') }}
+
 echo "track-login: Start" >> /tmp/track-login.out1
 date >> /tmp/track-login.out1
 env >> /tmp/track-login.out1
 echo "track-login: End" >> /tmp/track-login.out1
 echo >> /tmp/track-login.out1
 echo >> /tmp/track-login.out1
-
-# No need to continue if we are logging in with specific ip or username
-{{ track_login_skip_alert_sh | default('') }}
 
 # [ "$PAM_TYPE" = "open_session" ] || exit 0
 # {
