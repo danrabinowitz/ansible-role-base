@@ -1,6 +1,6 @@
 - name: Copy track-login
   template:
-    src: usr/local/sbin/track-login
+    src: usr/local/sbin/track-login.j2
     dest: /usr/local/sbin/track-login
     owner: root
     group: root
