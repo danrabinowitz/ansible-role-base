@@ -1,5 +1,5 @@
 - name: Copy track-login
-  copy:
+  template:
     src: usr/local/sbin/track-login
     dest: /usr/local/sbin/track-login
     owner: root
