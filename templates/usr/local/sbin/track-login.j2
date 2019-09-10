@@ -3,21 +3,14 @@
 # No need to continue if we are logging in with specific ip or username
 {{ track_login_skip_alert_sh | default('') }}
 
-echo "track-login: Start" >> /tmp/track-login.out1
-date >> /tmp/track-login.out1
-env >> /tmp/track-login.out1
-echo "track-login: End" >> /tmp/track-login.out1
-echo >> /tmp/track-login.out1
-echo >> /tmp/track-login.out1
-
 # [ "$PAM_TYPE" = "open_session" ] || exit 0
-# {
-#   echo "User: $PAM_USER"
-#   echo "Ruser: $PAM_RUSER"
-#   echo "Rhost: $PAM_RHOST"
-#   echo "Service: $PAM_SERVICE"
-#   echo "PAM Type: $PAM_TYPE"
-#   echo "TTY: $PAM_TTY"
-#   echo "Date: `date`"
-#   echo "Server: `uname -a`"
-# } | mail -s "`hostname -s` $PAM_SERVICE login: $PAM_USER" root
+{
+  echo "User: $PAM_USER"
+  echo "Ruser: $PAM_RUSER"
+  echo "Rhost: $PAM_RHOST"
+  echo "Service: $PAM_SERVICE"
+  echo "PAM Type: $PAM_TYPE"
+  echo "TTY: $PAM_TTY"
+  echo "Date: `date`"
+  echo "Server: `uname -a`"
+} | mail -s "`hostname -s` $PAM_SERVICE login: $PAM_USER" root
