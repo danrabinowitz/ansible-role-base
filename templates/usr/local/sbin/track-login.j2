@@ -5,12 +5,12 @@
 
 # [ "$PAM_TYPE" = "open_session" ] || exit 0
 {
-  echo "User: $PAM_USER"
-  echo "Ruser: $PAM_RUSER"
-  echo "Rhost: $PAM_RHOST"
-  echo "Service: $PAM_SERVICE"
-  echo "PAM Type: $PAM_TYPE"
-  echo "TTY: $PAM_TTY"
-  echo "Date: `date`"
-  echo "Server: `uname -a`"
+  echo "User: $PAM_USER\n"
+  echo "Ruser: $PAM_RUSER\n"
+  echo "Rhost: $PAM_RHOST\n"
+  echo "Service: $PAM_SERVICE\n"
+  echo "PAM Type: $PAM_TYPE\n"
+  echo "TTY: $PAM_TTY\n"
+  echo "Date: `date`\n"
+  echo "Server: `uname -a`\n"
 } | mail -s "`hostname -s` $PAM_SERVICE login: $PAM_USER" root
