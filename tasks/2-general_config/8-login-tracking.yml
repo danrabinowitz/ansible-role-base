@@ -1,3 +1,11 @@
+# track-login requires the "mail" program which is provided by mailutils
+- name: install mailutils
+  package:
+    name: mailutils
+    state: present
+  tags:
+    - track_login
+
 - name: Copy track-login
   template:
     src: usr/local/sbin/track-login.j2
