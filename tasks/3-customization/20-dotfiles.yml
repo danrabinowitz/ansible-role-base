@@ -1,0 +1,9 @@
+- name: Install inputrc
+  copy:
+    src: dot.inputrc
+    dest: /home/{{ custom_username }}/.inputrc
+    owner: "{{ custom_username }}"
+    group: "{{ custom_username }}"
+    mode: 0400
+  tags:
+    - inputrc
