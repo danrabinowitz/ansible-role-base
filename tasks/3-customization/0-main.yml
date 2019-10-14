@@ -1,1 +1,2 @@
 - include: 10-motd.yml
+- include: 20-dotfiles.yml
