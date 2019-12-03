@@ -9,7 +9,9 @@
     state: directory
     owner: "{{ custom_username }}"
     group: "{{ custom_username }}"
-    mode: 0755
+    mode: 0700
+  tags:
+    - ssh
 
 - name: Install authorized_keys
   copy:
@@ -17,7 +19,9 @@
     dest: /home/{{ custom_username }}/.ssh/authorized_keys
     owner: "{{ custom_username }}"
     group: "{{ custom_username }}"
-    mode: 0644
+    mode: 0600
+  tags:
+    - ssh
 
 - name: Install .google_authenticator
   template:
