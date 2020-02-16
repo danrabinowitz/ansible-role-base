@@ -14,6 +14,22 @@
     wireguard_peer_vpn_ips: "{{ wireguard_peer_ip_conversion.stdout_lines }}"
   check_mode: no
 
+- name: Get wg ip of current inventory host
+  local_action: "shell echo '{{ hostvars[inventory_hostname]['do_name'] }}' | ../bin/names_to_wg_ips"
+  changed_when: false
+  check_mode: no
+  register: wireguard_ip_of_current_host_conversion
+
+- set_fact:
+    wireguard_ip_of_current_host: "{{ wireguard_ip_of_current_host_conversion.stdout }}"
+  check_mode: no
+
+- name: wireguard_ip_of_current_host
+  debug:
+    msg: "{{ wireguard_ip_of_current_host }}"
+    # verbosity: "1"
+  check_mode: no
+
 - name: Get wg ips of all peers
   shell: "wg showconf wg0 | grep '^AllowedIPs ' | awk '{print $3}' | cut -d/ -f1"
   changed_when: false
@@ -50,7 +66,7 @@
   check_mode: no
 
 - name: Get wg add peer commands
-  local_action: "shell echo '{{ wireguard_peer_vpn_ips_to_add | join('\n')}}' | ../bin/wg_ips_to_add_peer_commands"
+  local_action: "shell echo '{{ wireguard_peer_vpn_ips_to_add | join('\n')}}' | ../bin/wg_ips_to_add_peer_commands '{{ wireguard_ip_of_current_host }}'"
   changed_when: false
   check_mode: no
   register: get_wireguard_add_peer_commands
