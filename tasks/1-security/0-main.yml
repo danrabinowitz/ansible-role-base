@@ -4,6 +4,8 @@
 # upgrade
 - include: 2-upgrade.yml
 
+- include: 2b-volumes.yml
+
 # add custom admin user
 - include: 3-create_admin_user.yml
 

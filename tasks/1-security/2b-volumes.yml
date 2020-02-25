@@ -1,0 +1,22 @@
+- name: Ensure volume mount points exist
+  file:
+    path: "/mnt/{{ item }}"
+    state: directory
+    owner: "root"
+    group: "root"
+    mode: 0755
+  with_items: "{{ mounted_volumes }}"
+  when: mounted_volumes is defined
+  tags:
+    - mount_volumes
+- name: Mount volumes
+  mount:
+    path: "/mnt/{{ item }}"
+    src: "/dev/disk/by-id/scsi-0DO_Volume_{{ item }}"
+    opts: "discard,defaults,nofail"
+    fstype: ext4
+    state: present
+  with_items: "{{ mounted_volumes }}"
+  when: mounted_volumes is defined
+  tags:
+    - mount_volumes
