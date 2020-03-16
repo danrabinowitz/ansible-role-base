@@ -1,8 +1,10 @@
 # track-login requires the "mail" program which is provided by mailutils
 - name: install mailutils
-  package:
+  apt:
     name: mailutils
     state: present
+    update_cache: yes
+    install_recommends: no
   tags:
     - track_login
 
