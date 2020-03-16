@@ -25,6 +25,7 @@
     from_ip: "{{ utility1_djrtechconsulting_com_public_ip }}"
     direction: in
     interface: eth0
+    delete: yes
 
 - name: "Allow access to node exporter from prometheus server's vpn ip only and only via vpn"
   ufw:

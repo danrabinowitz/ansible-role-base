@@ -11,6 +11,8 @@
 - include: 5-etc_hosts.yml
 
 - include: 6-prometheus_monitoring.yml
+  tags:
+    - prometheus_monitoring
 
 - include: 7-digitalocean_monitoring.yml
 
