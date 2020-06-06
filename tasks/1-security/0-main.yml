@@ -1,5 +1,7 @@
 # Firewall should be first, as soon as we have the public ip from get_facts
 - include: 1-firewall.yml
+  tags:
+    - firewall
 
 # upgrade
 - include: 2-upgrade.yml
