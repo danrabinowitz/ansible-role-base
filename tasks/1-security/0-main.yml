@@ -14,6 +14,8 @@
 - include: 4-lock_root_password.yml
 
 - include: 5-pam_google_authenticator.yml
+  tags:
+    - pam_google_authenticator
 
 # sshd updates for security, so do this early. This blocks root ssh login, so after
 - include: 6-configure_sshd.yml

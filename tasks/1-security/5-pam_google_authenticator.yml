@@ -18,7 +18,7 @@
   with_items:
     - pam_google_authenticator.la
     - pam_google_authenticator.so
-- name: Install pam_google_authenticator.la
+- name: Install google-authenticator
   copy:
     src: usr/bin/google-authenticator
     dest: /usr/bin/google-authenticator
