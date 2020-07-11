@@ -7,7 +7,7 @@
 
 - name: Restart sshd
   service: name=sshd state=restarted
-  changed_when: False
+  # changed_when: False
 
 - name: Restart fail2ban
   service: name=fail2ban state=restarted
