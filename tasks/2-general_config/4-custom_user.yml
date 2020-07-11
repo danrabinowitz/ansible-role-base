@@ -14,7 +14,7 @@
     - ssh
 
 - name: Install authorized_keys
-  copy:
+  template:
     src: .ssh/authorized_keys
     dest: /home/{{ custom_username }}/.ssh/authorized_keys
     owner: "{{ custom_username }}"

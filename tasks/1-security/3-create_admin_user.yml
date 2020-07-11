@@ -29,7 +29,7 @@
     - ssh
 
 - name: Install authorized_keys
-  copy:
+  template:
     src: .ssh/authorized_keys
     dest: /home/{{ admin_username }}/.ssh/authorized_keys
     owner: "{{ admin_username }}"
