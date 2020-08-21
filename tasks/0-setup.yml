@@ -23,44 +23,6 @@
   tags:
     - always
 
-# # Check if admin_username has been set up yet
-# - name: "setup : Determine if admin_username user has access"
-#   local_action: "shell ssh -o ConnectTimeout=3 -l {{ admin_username }} {{ inventory_hostname }} -- sudo sed -i \"'\"s/^AuthenticationMethods publickey,keyboard-interactive/AuthenticationMethods publickey/\"'\" /etc/ssh/sshd_config \\&\\& sudo service sshd restart; echo $?"
-#   register: test_admin_username_has_access
-#   changed_when: false
-#   check_mode: no
-#   tags:
-#     - temporarily_disable_2fa
-
-# - name: "setup : Debug test_admin_username_has_access"
-#   debug:
-#     var: test_admin_username_has_access
-#     # verbosity: "1"
-
-# - name: "setup : Debug test_admin_username_has_access"
-#   debug:
-#     var: test_admin_username_has_access.stdout
-#     # verbosity: "1"
-
-# - name: "setup : Set admin_username_has_access"
-#   set_fact:
-#      admin_username_has_access: "{{ test_admin_username_has_access.stdout == '0' }}"
-
-# - name: "setup : Debug admin_username_has_access"
-#   debug:
-#     var: admin_username_has_access
-#     # verbosity: "1"
-
-# - name: "setup : Report if admin user is not yet working."
-#   debug:
-#     msg: "Connections using admin user are not working yet. Using root briefly."
-#   when: not admin_username_has_access
-
-
-
-
-
-
 # ansible_host_public_ip is needed for the firewall and for .google_authenticator
 - name: "setup : Get public IP address"
   ipify_facts:
@@ -74,13 +36,3 @@
 - name: "setup : Set ansible_host_public_ip"
   set_fact:
      ansible_host_public_ip: "{{ ansible_host_public_ip.ansible_facts.ipify_public_ip }}"
-
-
-
-
-
-
-# - name: "setup : Debug ansible_host_public_ip"
-#   debug:
-#     var: ansible_host_public_ip
-#     verbosity: "1"
