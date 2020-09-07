@@ -9,6 +9,8 @@
 - include: 4-custom_user.yml
 
 - include: 5-etc_hosts.yml
+  tags:
+    - etc_hosts
 
 - include: 6-prometheus_monitoring.yml
   tags:
