@@ -97,9 +97,9 @@
     mode: '0755'
   when: wireguard_exporter is defined and wireguard_exporter
 - name: Install wireguard-exporter.service
-  copy:
-    src: "wireguard-exporter.service"
-    dest: "/lib/systemd/system/"
+  template:
+    src: "wireguard-exporter.service.j2"
+    dest: "/lib/systemd/system/wireguard-exporter.service"
     owner: root
     group: root
     mode: '0644'
