@@ -95,7 +95,7 @@
     owner: root
     group: root
     mode: 0755
-  when: wireguard_exporter
+  when: wireguard_exporter is defined and wireguard_exporter
 - name: Install wireguard-exporter.service
   copy:
     src: "wireguard-exporter.service"
@@ -103,10 +103,10 @@
     owner: root
     group: root
     mode: '0644'
-  when: wireguard_exporter
+  when: wireguard_exporter is defined and wireguard_exporter
 - name: Enable wireguard-exporter
   systemd:
     name: wireguard-exporter
     enabled: yes
     state: started
-  when: wireguard_exporter
+  when: wireguard_exporter is defined and wireguard_exporter
