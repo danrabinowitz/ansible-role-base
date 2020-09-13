@@ -94,7 +94,7 @@
     dest: /usr/bin/wireguard-exporter
     owner: root
     group: root
-    mode: 0755
+    mode: '0755'
   when: wireguard_exporter is defined and wireguard_exporter
 - name: Install wireguard-exporter.service
   copy:
