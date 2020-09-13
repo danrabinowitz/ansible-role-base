@@ -1,0 +1,11 @@
+[Unit]
+Description=Prometheus WireGuard Exporter
+After=network.target
+
+[Service]
+Type=simple
+Restart=always
+ExecStart=/usr/bin/wireguard_exporter
+
+[Install]
+WantedBy=multi-user.target

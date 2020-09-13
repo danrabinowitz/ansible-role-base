@@ -87,3 +87,26 @@
 - name: Save and restart wg
   shell: "wg-quick save wg0 && wg-quick down wg0 && wg-quick up wg0"
   when: (wireguard_peer_vpn_ips_to_add | length>0)
+
+- name: Install wireguard-exporter
+  copy:
+    src: usr/bin/wireguard-exporter
+    dest: /usr/bin/wireguard-exporter
+    owner: root
+    group: root
+    mode: 0755
+  when: wireguard_exporter
+- name: Install wireguard-exporter.service
+  copy:
+    src: "wireguard-exporter.service"
+    dest: "/lib/systemd/system/"
+    owner: root
+    group: root
+    mode: '0644'
+  when: wireguard_exporter
+- name: Enable wireguard-exporter
+  systemd:
+    name: wireguard-exporter
+    enabled: yes
+    state: started
+  when: wireguard_exporter
