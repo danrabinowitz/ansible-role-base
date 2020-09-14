@@ -96,25 +96,25 @@
     group: root
     mode: '0644'
 
-- name: Install wireguard-exporter
-  copy:
-    src: "usr/bin/wireguard-exporter-{{ ansible_architecture }}"
-    dest: /usr/bin/wireguard-exporter
-    owner: root
-    group: root
-    mode: '0755'
-  when: wireguard_exporter is defined and wireguard_exporter
-- name: Install wireguard-exporter.service
-  template:
-    src: "wireguard-exporter.service.j2"
-    dest: "/lib/systemd/system/wireguard-exporter.service"
-    owner: root
-    group: root
-    mode: '0644'
-  when: wireguard_exporter is defined and wireguard_exporter
-- name: Enable wireguard-exporter
-  systemd:
-    name: wireguard-exporter
-    enabled: yes
-    state: started
-  when: wireguard_exporter is defined and wireguard_exporter
+# - name: Install wireguard-exporter
+#   copy:
+#     src: "usr/bin/wireguard-exporter-{{ ansible_architecture }}"
+#     dest: /usr/bin/wireguard-exporter
+#     owner: root
+#     group: root
+#     mode: '0755'
+#   when: wireguard_exporter is defined and wireguard_exporter
+# - name: Install wireguard-exporter.service
+#   template:
+#     src: "wireguard-exporter.service.j2"
+#     dest: "/lib/systemd/system/wireguard-exporter.service"
+#     owner: root
+#     group: root
+#     mode: '0644'
+#   when: wireguard_exporter is defined and wireguard_exporter
+# - name: Enable wireguard-exporter
+#   systemd:
+#     name: wireguard-exporter
+#     enabled: yes
+#     state: started
+#   when: wireguard_exporter is defined and wireguard_exporter
