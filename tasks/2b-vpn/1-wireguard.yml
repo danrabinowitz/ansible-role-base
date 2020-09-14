@@ -90,7 +90,7 @@
 
 - name: Install wg-quick service
   copy:
-    src: /lib/systemd/system/wg-quick@.service
+    src: lib/systemd/system/wg-quick@.service
     dest: /lib/systemd/system/
     owner: root
     group: root
