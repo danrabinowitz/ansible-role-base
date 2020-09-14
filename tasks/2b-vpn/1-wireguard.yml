@@ -90,7 +90,7 @@
 
 - name: Install wireguard-exporter
   copy:
-    src: usr/bin/wireguard-exporter
+    src: "usr/bin/wireguard-exporter-{{ ansible_architecture }}"
     dest: /usr/bin/wireguard-exporter
     owner: root
     group: root
