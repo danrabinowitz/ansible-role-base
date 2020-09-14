@@ -88,6 +88,14 @@
   shell: "wg-quick save wg0 && wg-quick down wg0 && wg-quick up wg0"
   when: (wireguard_peer_vpn_ips_to_add | length>0)
 
+- name: Install wg-quick service
+  copy:
+    src: /lib/systemd/system/wg-quick@.service
+    dest: /lib/systemd/system/
+    owner: root
+    group: root
+    mode: '0644'
+
 - name: Install wireguard-exporter
   copy:
     src: "usr/bin/wireguard-exporter-{{ ansible_architecture }}"
