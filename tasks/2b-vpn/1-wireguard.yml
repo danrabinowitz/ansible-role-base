@@ -97,7 +97,7 @@
     mode: '0644'
 - name: Enable wg-quick
   systemd:
-    name: "wg-quick@service"
+    name: "wg-quick@wg0"
     enabled: yes
     state: started
 
