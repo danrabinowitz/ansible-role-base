@@ -77,6 +77,7 @@ chmod 600 "${home}/.ssh/authorized_keys"
 
 echo "Installing wireguard..."
 if [ "$(uname -s)" = "Darwin" ]; then
+  echo "TODO: Explore installing wireguard-go on macOS without requiring homebrew."
   curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh > /tmp/brew-install.sh
   chmod 755 /tmp/brew-install.sh
   # /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
