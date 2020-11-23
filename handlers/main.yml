@@ -1,15 +1,14 @@
----
 - name: Update aliases
   shell: /usr/bin/newaliases
 
 - name: Restart postfix
   service: name=postfix state=restarted
 
-- name: Restart sshd
+- name: Restart sshd Debian
   service: name=sshd state=restarted
   when: ansible_os_family == 'Debian'
 
-- name: Restart sshd
+- name: Restart sshd Darwin
   shell: "launchctl stop /System/Library/LaunchDaemons/ssh.plist && launchctl start /System/Library/LaunchDaemons/ssh.plist"
   when: ansible_os_family == 'Darwin'
 
@@ -18,3 +17,8 @@
 
 - name: Restart prometheus-node-exporter
   service: name=prometheus-node-exporter state=restarted
+
+
+# Darwin only
+- name: Reload pfconf
+  shell: "pfctl -f /etc/pf.conf && pfctl -E"

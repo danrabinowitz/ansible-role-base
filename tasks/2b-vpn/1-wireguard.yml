@@ -30,8 +30,17 @@
     # verbosity: "1"
   check_mode: no
 
+- set_fact:
+    wg_interface: "{{ 'utun0' if ansible_os_family == 'Darwin' else 'wg0' }}"
+  check_mode: no
+  # when: wg_interface is not defined
+
+- set_fact:
+    path_prepend: "{{ 'PATH=/usr/local/bin:$PATH' if ansible_os_family == 'Darwin' else 'PATH=$PATH' }}"
+  check_mode: no
+
 - name: Get wg ips of all peers
-  shell: "wg showconf wg0 | grep '^AllowedIPs ' | awk '{print $3}' | cut -d/ -f1"
+  shell: "{{ path_prepend }}; wg showconf {{ wg_interface }} | grep '^AllowedIPs ' | awk '{print $3}' | cut -d/ -f1"
   changed_when: false
   check_mode: no
   register: get_current_wireguard_peer_ips
@@ -66,7 +75,7 @@
   check_mode: no
 
 - name: Get wg add peer commands
-  local_action: "shell echo '{{ wireguard_peer_vpn_ips_to_add | join('\n')}}' | ../bin/wg_ips_to_add_peer_commands '{{ wireguard_ip_of_current_host }}'"
+  local_action: "shell echo '{{ wireguard_peer_vpn_ips_to_add | join('\n')}}' | ../bin/wg_ips_to_add_peer_commands '{{ wireguard_ip_of_current_host }}' '{{ wg_interface }}'"
   changed_when: false
   check_mode: no
   register: get_wireguard_add_peer_commands
@@ -80,14 +89,15 @@
   when: (wireguard_peer_vpn_ips_to_add | length>0)
 
 - name: Add wg peers
-  shell: "{{ item }}"
+  shell: "{{ path_prepend }};{{ item }}"
   with_items: "{{ get_wireguard_add_peer_commands.stdout_lines }}"
   when: (wireguard_peer_vpn_ips_to_add | length>0)
 
 - name: Save and restart wg
-  shell: "wg-quick save wg0 && wg-quick down wg0 && wg-quick up wg0"
+  shell: "{{ path_prepend }}; wg-quick save {{ wg_interface }} && wg-quick down {{ wg_interface }} && wg-quick up {{ wg_interface }}"
   when: (wireguard_peer_vpn_ips_to_add | length>0)
 
+# Start wg on bootup
 - name: Install wg-quick service
   copy:
     src: lib/systemd/system/wg-quick@.service
@@ -95,11 +105,27 @@
     owner: root
     group: root
     mode: '0644'
+  when: ansible_os_family == 'Debian'
 - name: Enable wg-quick
   systemd:
-    name: "wg-quick@wg0"
+    name: "wg-quick@{{ wg_interface }}"
     enabled: yes
     state: started
+  when: ansible_os_family == 'Debian'
+
+
+- name: Install wireguard plist in LaunchDaemons
+  template:
+    src: Library/LaunchDaemons/com.wireguard.plist.j2
+    dest: "/Library/LaunchDaemons/com.wireguard.{{ wg_interface }}.plist"
+    owner: root
+    group: wheel
+    mode: '0644'
+  when: ansible_os_family == 'Darwin'
+
+
+
+
 
 # - name: Install wireguard-exporter
 #   copy:

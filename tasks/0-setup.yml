@@ -15,9 +15,20 @@
   tags:
     - always
 
+- name: Print all available facts
+  ansible.builtin.debug:
+    var: ansible_facts
+
+- name: "setup : Set real_ansible_ssh_host"
+  set_fact:
+     real_ansible_ssh_host: "{{ ansible_ssh_host }}"
+  tags:
+    - always
+
 # Not certain what's going on, but running this seems to allow subsequent ansible ssh connections to succeed.
+# ansible_ssh_host, inventory_hostname, real_ansible_ssh_host
 - name: "setup : Connect directly via ssh to enable subsequent ansible ssh connections"
-  local_action: "shell ssh -o ControlMaster=auto -o ControlPersist=1800s -o 'User=\"{{ admin_username }}\"' -o ConnectTimeout=10 -o ControlPath=/root/.ansible/cp/ansible-ssh-%h-%p-%r {{ inventory_hostname }} '/bin/sh -c '\"'\"'echo ~{{ admin_username }} && sleep 0'\"'\"''"
+  local_action: "shell ssh -o ControlMaster=auto -o ControlPersist=1800s -o 'User=\"{{ admin_username }}\"' -o ConnectTimeout=10 -o ControlPath=/root/.ansible/cp/ansible-ssh-%h-%p-%r {{ real_ansible_ssh_host }} '/bin/sh -c '\"'\"'echo ~{{ admin_username }} && sleep 0'\"'\"''"
   changed_when: false
   check_mode: no
   tags:
@@ -42,12 +53,16 @@
     gather_subset:
       - '!all'
       - virtual # used for ansible_os_family
+  tags:
+    - always
 
 - name: Debug ansible_os_family
   debug:
     var: ansible_os_family
     # verbosity: "1"
   check_mode: no
+  tags:
+    - always
 
 # - name: Fail
 #   fail:
@@ -56,3 +71,5 @@
 - name: "setup : Set wheel_group"
   set_fact:
      wheel_group: "{{ 'root' if ansible_os_family == 'Darwin' else 'wheel' }}"
+  tags:
+    - always

@@ -1,6 +1,8 @@
 - include: 1-wireguard.yml
   tags:
     - wireguard
+
 - include: 2-etc_hosts.yml
+  when: ansible_os_family == 'Debian'
   tags:
     - etc_hosts

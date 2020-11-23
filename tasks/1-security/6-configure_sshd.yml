@@ -8,7 +8,8 @@
     - ssh_host_ecdsa_key
     - ssh_host_ecdsa_key.pub
   notify:
-    - Restart sshd
+    - Restart sshd Debian
+    - Restart sshd Darwin
 
 - name: Get wg ip of current inventory host
   local_action: "shell echo '{{ hostvars[inventory_hostname]['do_name'] }}' | ../bin/names_to_wg_ips"
@@ -38,4 +39,5 @@
     # group: root
     mode: 0644
   notify:
-    - Restart sshd
+    - Restart sshd Debian
+    - Restart sshd Darwin
