@@ -27,7 +27,8 @@ function display_steps {
     echo "   -> While macOS is installing, allocate an ip address for the new machine"
     echo "2) Connect to network"
     echo "3) Create an account which will be the admin account"
-    echo "4) Open Terminal and run this script"
+    echo "4) Open Terminal and run this script ( https://d2r.io/macos1 )"
+    echo "   As root?"
   else
     echo "Use cloud init"
   fi
@@ -40,6 +41,8 @@ function usage {
 }
 
 # Validate params
+echo "TODO: Add code to rerun as root if not root."
+
 if [ -z "$userdata_admin_username" ]; then
   echo "userdata_admin_username is required"
   usage
