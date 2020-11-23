@@ -5,26 +5,34 @@
 
 # upgrade
 - include: 2-upgrade.yml
+  when: ansible_os_family == 'Debian'
 
 - include: 2b-volumes.yml
+  when: ansible_os_family == 'Debian'
 
 # add custom admin user
 - include: 3-create_admin_user.yml
 
 - include: 4-lock_root_password.yml
+  when: ansible_os_family == 'Debian'
 
 - include: 5-pam_google_authenticator.yml
+  when: ansible_os_family == 'Debian'
   tags:
     - pam_google_authenticator
 
 # sshd updates for security, so do this early. This blocks root ssh login, so after
 - include: 6-configure_sshd.yml
+  tags:
+    - configure_sshd
 
 # unattended-upgrades
 - include: 7-unattended-upgrades.yml
+  when: ansible_os_family == 'Debian'
 
 # fail2ban is not needed until we open the firewall to services, so this can be near
 # the end of the security section.
 - include: 8-fail2ban.yml
+  when: ansible_os_family == 'Debian'
   tags:
     - fail2ban

@@ -10,6 +10,23 @@
   notify:
     - Restart sshd
 
+- name: Get wg ip of current inventory host
+  local_action: "shell echo '{{ hostvars[inventory_hostname]['do_name'] }}' | ../bin/names_to_wg_ips"
+  changed_when: false
+  check_mode: no
+  register: wireguard_ip_of_current_host_conversion
+
+- set_fact:
+    wireguard_ip_of_current_host: "{{ wireguard_ip_of_current_host_conversion.stdout }}"
+  check_mode: no
+
+- name: wireguard_ip_of_current_host
+  debug:
+    msg: "{{ wireguard_ip_of_current_host }}"
+    # verbosity: "1"
+  check_mode: no
+
+
 # Use a custom, secure sshd config
 # Note: We do NOT include this template with this role, so that the role can be public while keeping the
 # slightly-confidential sshd settings more private.
@@ -18,11 +35,7 @@
     src: sshd_config.j2
     dest: /etc/ssh/sshd_config
     owner: root
-    group: root
+    # group: root
     mode: 0644
   notify:
     - Restart sshd
-  # check_mode: no
-  # changed_when: False
-  tags:
-    - sshd

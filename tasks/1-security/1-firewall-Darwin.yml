@@ -1,0 +1,49 @@
+- name: Block all ssh connections by default
+  lineinfile:
+    path: /etc/pf.conf
+    line: 'block return in proto tcp from any to any port 22'
+  notify:
+    - Reload pfconf
+
+- name: Allow connections from Dan's MBP
+  lineinfile:
+    path: /etc/pf.conf
+    line: 'pass in inet proto tcp from 192.168.192.1/32 to any port 22 no state'
+  notify:
+    - Reload pfconf
+
+- name: Allow connections from localhost when on dan's mbp
+  lineinfile:
+    path: /etc/pf.conf
+    line: 'pass in inet proto tcp from 192.168.192.1/32 to any port 22 no state'
+  when: allow_local_ansible | default(False)
+  notify:
+    - Reload pfconf
+
+- name: Allow connections from utility server
+  lineinfile:
+    path: /etc/pf.conf
+    line: 'pass in inet proto tcp from 10.0.0.1/32 to any port 22 no state'
+  notify:
+    - Reload pfconf
+
+- name: Allow connections from devenv server
+  lineinfile:
+    path: /etc/pf.conf
+    line: 'pass in inet proto tcp from 10.0.0.4/32 to any port 22 no state'
+  notify:
+    - Reload pfconf
+
+- name: Allow connections from Dan's phone
+  lineinfile:
+    path: /etc/pf.conf
+    line: 'pass in inet proto tcp from 10.0.0.6/32 to any port 22 no state'
+  notify:
+    - Reload pfconf
+
+- name: Allow connections from devenv-blue server
+  lineinfile:
+    path: /etc/pf.conf
+    line: 'pass in inet proto tcp from 10.0.0.9/32 to any port 22 no state'
+  notify:
+    - Reload pfconf

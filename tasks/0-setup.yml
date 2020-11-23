@@ -36,3 +36,23 @@
 - name: "setup : Set ansible_host_public_ip"
   set_fact:
      ansible_host_public_ip: "{{ ansible_host_public_ip.ansible_facts.ipify_public_ip }}"
+
+- name: Collect only facts needed for ansible-role-base
+  setup:
+    gather_subset:
+      - '!all'
+      - virtual # used for ansible_os_family
+
+- name: Debug ansible_os_family
+  debug:
+    var: ansible_os_family
+    # verbosity: "1"
+  check_mode: no
+
+# - name: Fail
+#   fail:
+#     msg: Dan fail
+
+- name: "setup : Set wheel_group"
+  set_fact:
+     wheel_group: "{{ 'root' if ansible_os_family == 'Darwin' else 'wheel' }}"

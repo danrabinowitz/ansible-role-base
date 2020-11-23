@@ -7,7 +7,11 @@
 
 - name: Restart sshd
   service: name=sshd state=restarted
-  # changed_when: False
+  when: ansible_os_family == 'Debian'
+
+- name: Restart sshd
+  shell: "launchctl stop /System/Library/LaunchDaemons/ssh.plist && launchctl start /System/Library/LaunchDaemons/ssh.plist"
+  when: ansible_os_family == 'Darwin'
 
 - name: Restart fail2ban
   service: name=fail2ban state=restarted

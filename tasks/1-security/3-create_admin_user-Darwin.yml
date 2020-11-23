@@ -1,0 +1,15 @@
+- name: Set permissions for .ssh
+  file:
+    path: /Users/{{ admin_username }}/.ssh
+    state: directory
+    owner: "{{ admin_username }}"
+    group: staff
+    mode: 0700
+
+- name: Install authorized_keys
+  template:
+    src: .ssh/authorized_keys
+    dest: /Users/{{ admin_username }}/.ssh/authorized_keys
+    owner: "{{ admin_username }}"
+    group: staff
+    mode: 0600

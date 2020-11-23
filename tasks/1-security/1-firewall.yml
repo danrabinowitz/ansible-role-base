@@ -1,42 +1,4 @@
-- name: "Security : Firewall: Allow wireguard traffic"
-  ufw:
-    rule: allow
-    port: "51820"
-    proto: udp
-    direction: in
-
-- name: "Security : Firewall : Allow ssh access over wireguard"
-  ufw:
-    rule: allow
-    port: ssh
-    proto: tcp
-    direction: in
-    interface: wg0
-    from_ip: "{{ item }}"
-  with_items: "{{ ips_from_which_ssh_is_allowed_via_wireguard }}"
-  when: not(
-          (ips_from_which_ssh_is_allowed_via_wireguard is undefined)
-        )
-
-# This is blocked by DO firewall. But could be opened for recovery purposes if wireguard fails.
-- name: "Security : Firewall : Allow ssh access from jumphost's ip. This should never be used, but is a good backup in case wireguard fails."
-  ufw:
-    rule: allow
-    port: ssh
-    proto: tcp
-    from_ip: "{{ jumphost_ip }}"
-    direction: in
-  when: not(
-          (jumphost_ip is undefined)
-          or
-          (jumphost_ip is none)
-          or
-          (jumphost_ip | trim == '')
-        )
-
-- name: "Security : Firewall : Enable ufw ASAP"
-  ufw:
-    state: enabled
-    policy: deny
-    logging: low
-    direction: incoming
+- include: 1-firewall-Darwin.yml
+  when: ansible_os_family == 'Darwin'
+- include: 1-firewall-Debian.yml
+  when: ansible_os_family == 'Debian'
