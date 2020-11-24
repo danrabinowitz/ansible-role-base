@@ -9,7 +9,8 @@
   when: ansible_os_family == 'Debian'
 
 - name: Restart sshd Darwin
-  shell: "launchctl stop /System/Library/LaunchDaemons/ssh.plist && launchctl start /System/Library/LaunchDaemons/ssh.plist"
+  # shell: "launchctl stop /System/Library/LaunchDaemons/ssh.plist; launchctl start /System/Library/LaunchDaemons/ssh.plist"
+  shell: "launchctl stop com.openssh.sshd; launchctl start com.openssh.sshd"
   when: ansible_os_family == 'Darwin'
 
 - name: Restart fail2ban

@@ -31,8 +31,6 @@ function display_steps {
     echo "4) Open Terminal and run this script"
     echo "   curl -fsSL https://d2r.io/macos1 > run.sh"
     echo "   chmod 755 run.sh && ./run.sh"
-
-    echo "   As root?"
   else
     echo "Use cloud init"
   fi
@@ -121,7 +119,7 @@ else
 fi
 
 echo "Creating wireguard configuration..."
-mkdir -p "$wg_dir" && chown root:root "$wg_dir" && chmod 700 "$wg_dir"
+mkdir -p "$wg_dir" && chown root:wheel "$wg_dir" && chmod 700 "$wg_dir"
 wg genkey | tee "${wg_dir}/privatekey" | wg pubkey > "${wg_dir}/publickey"
 
 cat <<EOF >${wg_dir}/${interface}.conf
@@ -139,7 +137,9 @@ AllowedIPs = 192.168.192.1
 EOF
 
 if [ "$(uname -s)" = "Darwin" ]; then
-  echo "Sharing public key on wg port..."
+  echo "Sharing public key on wg port. Run this command to get it:"
+  ip=$(ifconfig en1 | grep 'inet ' | awk '{print $2}')
+  echo "echo | socat udp4:${ip}:51820 -"
   cat ${wg_dir}/publickey| socat -u STDIN udp4-listen:51820
   echo "Shared. Now starting wg..."
   wg-quick up utun0
@@ -151,6 +151,10 @@ EOS
   pfctl -f /etc/pf.conf && pfctl -E
   echo "Starting ssh"
   systemsetup -setremotelogin on
+  echo "1) Update 'public_keys'"
+  echo "2) Remove any old keys for this host."
+  echo "3) Run 'make provisioner-wireguard'"
+  echo "4) Provision the new macOS machine."
 else
   ufw allow 51820/udp
 

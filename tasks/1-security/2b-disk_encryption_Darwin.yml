@@ -14,14 +14,14 @@
     # verbosity: "1"
   check_mode: no
 
-# - name: Enable disk encryption
-#   command: fdesetup enable
-#   when: not fdesetup_bool
-
-- name: Fail if disk encryption is not enabled
-  fail:
-    msg: Disk encryption is not enabled
+- name: Enable disk encryption
+  command: fdesetup enable -user {{ admin_username }} -norecoverykey -defer /root/fde_recoverykey.plist
   when: not fdesetup_bool
+
+# - name: Fail if disk encryption is not enabled
+#   fail:
+#     msg: Disk encryption is not enabled
+#   when: not fdesetup_bool
 
 # https://github.com/drduh/macOS-Security-and-Privacy-Guide#firmware
 # firmwarepasswd -setpasswd -setmode command

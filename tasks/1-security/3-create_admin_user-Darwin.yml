@@ -21,3 +21,12 @@
 # mv /Users/$LOCAL_ADMIN_SHORTNAME /var/$LOCAL_ADMIN_SHORTNAME # Moves the admin home folder to /var
 # dscl . -create /Users/$LOCAL_ADMIN_SHORTNAME NFSHomeDirectory /var/$LOCAL_ADMIN_SHORTNAME # Create new home dir attribute
 # dscl . -delete "/SharePoints/$LOCAL_ADMIN_FULLNAME's Public Folder" # Removes the public folder sharepoint for the local admin
+
+- name: Allow admin_username user to have passwordless sudo
+  lineinfile:
+    dest: /etc/sudoers
+    state: present
+    regexp: '^{{ admin_username }}'
+    line: '{{ admin_username }} ALL=(ALL) NOPASSWD: ALL'
+    validate: visudo -cf %s
+  when: not (deny_passwordless_sudo_for_admin | default(False))

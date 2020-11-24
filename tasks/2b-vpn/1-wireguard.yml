@@ -95,7 +95,7 @@
 
 - name: Save and restart wg
   shell: "{{ path_prepend }}; wg-quick save {{ wg_interface }} && wg-quick down {{ wg_interface }} && wg-quick up {{ wg_interface }}"
-  when: (wireguard_peer_vpn_ips_to_add | length>0)
+  when: (wireguard_peer_vpn_ips_to_add | length>0) and (ansible_os_family == 'Debian')
 
 # Start wg on bootup
 - name: Install wg-quick service
@@ -122,6 +122,10 @@
     group: wheel
     mode: '0644'
   when: ansible_os_family == 'Darwin'
+
+- name: Save and restart wg
+  shell: "launchctl unload /Library/LaunchDaemons/com.wireguard.{{ wg_interface }}.plist; launchctl load -w /Library/LaunchDaemons/com.wireguard.{{ wg_interface }}.plist"
+  when: (wireguard_peer_vpn_ips_to_add | length>0) and (ansible_os_family == 'Debian')
 
 
 
