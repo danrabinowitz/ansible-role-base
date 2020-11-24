@@ -15,8 +15,15 @@
     mode: 0600
 
   # Hides the account (10.10 and above)
+- name: Check if user is hidden
+  shell: dscl . read /Users/{{ admin_username }} IsHidden | awk '{print $2}'
+  register: admin_user_hidden_reg
+  check_mode: no
+  changed_when: false
+
 - name: Create user
   command: dscl . create /Users/{{ admin_username }} IsHidden 1
+  when: admin_user_hidden_reg.stdout != "1"
 
 # mv /Users/$LOCAL_ADMIN_SHORTNAME /var/$LOCAL_ADMIN_SHORTNAME # Moves the admin home folder to /var
 # dscl . -create /Users/$LOCAL_ADMIN_SHORTNAME NFSHomeDirectory /var/$LOCAL_ADMIN_SHORTNAME # Create new home dir attribute

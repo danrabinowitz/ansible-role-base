@@ -15,8 +15,17 @@
   check_mode: no
 
 - name: Enable disk encryption
-  command: fdesetup enable -user {{ admin_username }} -norecoverykey -defer /root/fde_recoverykey.plist
+  command: fdesetup enable -user {{ admin_username }} -defer /root/fde_recoverykey.plist
   when: not fdesetup_bool
+
+# - name: Log out the user
+#   # shell: osascript -e 'tell application "System Events" to log out'
+#   # shell: sudo -E -u djr osascript -e 'tell application "System Events" to log out'
+#   shell: launchctl bootout user/$(id -u "djr")
+#   when: not fdesetup_bool
+#   # become: true
+#   # # become_user: "{{ admin_username }}"
+#   # become_user: "djr"
 
 # - name: Fail if disk encryption is not enabled
 #   fail:

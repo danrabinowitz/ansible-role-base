@@ -1,12 +1,36 @@
 - name: Add custom user
   user:
     name: "{{ custom_username }}"
-    #password: test
-    shell: /bin/bash
     state: present
     createhome: yes
+  register: add_custom_user_reg
+
+- name: Add custom user
+  user:
+    name: "{{ custom_username }}"
+    password: changeme
+    shell: /bin/zsh
+    state: present
+    # createhome: yes
     # groups: wheel
     # append: yes
+  when: add_custom_user_reg.changed
+
+- name: Require password reset
+  command: pwpolicy -u "{{ custom_username }}" -setpolicy "newPasswordRequired=1"
+  when: add_custom_user_reg.changed
+
+# sudo defaults write /Library/Preferences/com.apple.loginwindow SHOWOTHERUSERS_MANAGED -bool FALSE
+- community.general.osx_defaults:
+    domain: /Library/Preferences/com.apple.loginwindow
+    key: SHOWOTHERUSERS_MANAGED
+    type: bool
+    value: "FALSE"
+    state: present
+
+
+# pwpolicy -a adminuser -u usertoforcechange -setpolicy "newPasswordRequired=1"
+
 
 # - name: Create user
 #   command: dscl . -create /Users/{{ custom_username }}
