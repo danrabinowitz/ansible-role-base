@@ -53,13 +53,17 @@ if [ -z "$userdata_admin_username" ]; then
     echo "userdata_admin_username is required"
     usage
   fi
+  echo "Setting userdata_admin_username=$user"
   userdata_admin_username="$user"
 fi
 
 echo "Be sure we're running as root"
 if [ $EUID != 0 ]; then
   echo "Not root. Trying again with sudo..."
-  sudo bash "$0" "$@";
+  set -x
+  userdata_admin_username="$userdata_admin_username" userdata_wireguard_address="$userdata_wireguard_address" \
+    wg_addr="$wg_addr" \
+    sudo bash "$0" "$@";
   exit "$?";
  fi
 
