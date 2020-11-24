@@ -47,3 +47,5 @@
     line: 'pass in inet proto tcp from 10.0.0.9/32 to any port 22 no state'
   notify:
     - Reload pfconf
+
+# TODO: https://github.com/drduh/macOS-Security-and-Privacy-Guide#firewall

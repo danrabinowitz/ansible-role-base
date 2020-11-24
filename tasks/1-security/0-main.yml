@@ -9,6 +9,10 @@
 
 - include: 2b-volumes.yml
   when: ansible_os_family == 'Debian'
+- include: 2b-disk_encryption_Darwin.yml
+  when: ansible_os_family == 'Darwin'
+  tags:
+    - disk_encryption
 
 # add custom admin user
 - include: 3-create_admin_user.yml

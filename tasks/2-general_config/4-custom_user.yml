@@ -1,34 +1,5 @@
-- name: Add custom user
-  user:
-    name: "{{ custom_username }}"
-    shell: "{{ custom_username_shell | default('/bin/bash')}}"
+- import_tasks: 4-custom_user-Darwin.yml
+  when: ansible_os_family == 'Darwin'
 
-- name: Install .ssh for custom user
-  file:
-    path: /home/{{ custom_username }}/.ssh
-    state: directory
-    owner: "{{ custom_username }}"
-    group: "{{ custom_username }}"
-    mode: 0700
-  tags:
-    - ssh
-
-- name: Install authorized_keys
-  template:
-    src: .ssh/authorized_keys
-    dest: /home/{{ custom_username }}/.ssh/authorized_keys
-    owner: "{{ custom_username }}"
-    group: "{{ custom_username }}"
-    mode: 0600
-  tags:
-    - ssh
-
-- name: Install .google_authenticator
-  template:
-    src: secrets/.google_authenticator.j2
-    dest: /home/{{ custom_username }}/.google_authenticator
-    owner: "{{ custom_username }}"
-    group: "{{ custom_username }}"
-    mode: 0400
-    force: no
-  when: not ansible_check_mode
+- import_tasks: 4-custom_user-Debian.yml
+  when: ansible_os_family == 'Debian'

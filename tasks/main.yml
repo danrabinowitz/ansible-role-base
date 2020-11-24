@@ -3,7 +3,6 @@
 - include: 1-security/0-main.yml
 
 - include: 2-general_config/0-main.yml
-  when: ansible_os_family == 'Debian'
 
 - include: 2b-vpn/0-main.yml
 

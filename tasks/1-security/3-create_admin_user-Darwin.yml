@@ -13,3 +13,11 @@
     owner: "{{ admin_username }}"
     group: staff
     mode: 0600
+
+  # Hides the account (10.10 and above)
+- name: Create user
+  command: dscl . create /Users/{{ admin_username }} IsHidden 1
+
+# mv /Users/$LOCAL_ADMIN_SHORTNAME /var/$LOCAL_ADMIN_SHORTNAME # Moves the admin home folder to /var
+# dscl . -create /Users/$LOCAL_ADMIN_SHORTNAME NFSHomeDirectory /var/$LOCAL_ADMIN_SHORTNAME # Create new home dir attribute
+# dscl . -delete "/SharePoints/$LOCAL_ADMIN_FULLNAME's Public Folder" # Removes the public folder sharepoint for the local admin

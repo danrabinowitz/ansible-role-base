@@ -1,0 +1,34 @@
+- name: Add custom user
+  user:
+    name: "{{ custom_username }}"
+    shell: "{{ custom_username_shell | default('/bin/bash')}}"
+
+- name: Install .ssh for custom user
+  file:
+    path: /home/{{ custom_username }}/.ssh
+    state: directory
+    owner: "{{ custom_username }}"
+    group: "{{ custom_username }}"
+    mode: 0700
+  tags:
+    - ssh
+
+- name: Install authorized_keys
+  template:
+    src: .ssh/authorized_keys
+    dest: /home/{{ custom_username }}/.ssh/authorized_keys
+    owner: "{{ custom_username }}"
+    group: "{{ custom_username }}"
+    mode: 0600
+  tags:
+    - ssh
+
+- name: Install .google_authenticator
+  template:
+    src: secrets/.google_authenticator.j2
+    dest: /home/{{ custom_username }}/.google_authenticator
+    owner: "{{ custom_username }}"
+    group: "{{ custom_username }}"
+    mode: 0400
+    force: no
+  when: not ansible_check_mode

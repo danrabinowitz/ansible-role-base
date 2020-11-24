@@ -1,0 +1,36 @@
+- name: Create user
+  command: dscl . -create /Users/{{ custom_username }}
+# - name: Set shell
+#   command: dscl . -create /Users/{{ custom_username }} UserShell /bin/bash
+
+
+# dscl . -create /Users/joeadmin
+# dscl . -create /Users/joeadmin UserShell /bin/bash
+# dscl . -create /Users/joeadmin RealName "Joe Admin" 
+# dscl . -create /Users/joeadmin UniqueID "510"
+# dscl . -create /Users/joeadmin PrimaryGroupID 20
+# dscl . -create /Users/joeadmin NFSHomeDirectory /Users/joeadmin
+# dscl . -passwd /Users/joeadmin password 
+
+# dscl . -append /Groups/admin GroupMembership joeadmin
+
+# - name: Add custom user
+#   user:
+#     name: "{{ custom_username }}"
+#     shell: "{{ custom_username_shell | default('/bin/bash')}}"
+
+- name: Install .ssh for custom user
+  file:
+    path: /Users/{{ custom_username }}/.ssh
+    state: directory
+    owner: "{{ custom_username }}"
+    # group: "{{ custom_username }}"
+    mode: 0700
+
+- name: Install authorized_keys
+  template:
+    src: .ssh/authorized_keys
+    dest: /Users/{{ custom_username }}/.ssh/authorized_keys
+    owner: "{{ custom_username }}"
+    # group: "{{ custom_username }}"
+    mode: 0600

@@ -1,0 +1,27 @@
+# https://github.com/drduh/macOS-Security-and-Privacy-Guide#full-disk-encryption
+- name: Check if disk encryption is enabled
+  command: fdesetup status
+  register: fdesetup_status
+  check_mode: no
+
+- set_fact:
+    fdesetup_bool: "{{ fdesetup_status.stdout == 'FileVault is On.' }}"
+  check_mode: no
+
+- name: Debug fdesetup_bool
+  debug:
+    var: fdesetup_bool
+    # verbosity: "1"
+  check_mode: no
+
+# - name: Enable disk encryption
+#   command: fdesetup enable
+#   when: not fdesetup_bool
+
+- name: Fail if disk encryption is not enabled
+  fail:
+    msg: Disk encryption is not enabled
+  when: not fdesetup_bool
+
+# https://github.com/drduh/macOS-Security-and-Privacy-Guide#firmware
+# firmwarepasswd -setpasswd -setmode command
