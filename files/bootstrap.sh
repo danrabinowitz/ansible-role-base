@@ -30,7 +30,7 @@ function display_steps {
     echo "3) Create an account which will be the admin account"
     echo "4) Open Terminal and run this script"
     echo "   curl -fsSL https://d2r.io/macos1 > run.sh"
-    echo "   chmod 755 run.sh && sudo ./run.sh"
+    echo "   chmod 755 run.sh && ./run.sh"
 
     echo "   As root?"
   else
@@ -59,6 +59,14 @@ if [ -z "$userdata_admin_username" ]; then
 fi
 echo "Using userdata_admin_username=$userdata_admin_username"
 
+if [ -z "$userdata_wireguard_address" ]; then
+  if [ -z "$wg_addr" ]; then
+    echo "wireguard address is required"
+    usage
+  fi
+  userdata_wireguard_address="$wg_addr"
+fi
+
 echo "Be sure we're running as root"
 if [ $EUID != 0 ]; then
   echo "Not root. Trying again with sudo..."
@@ -66,17 +74,8 @@ if [ $EUID != 0 ]; then
   sudo \
     userdata_admin_username="$userdata_admin_username" \
     userdata_wireguard_address="$userdata_wireguard_address" \
-    wg_addr="$wg_addr" \
     bash "$0" "$@";
   exit "$?";
-fi
-
-if [ -z "$userdata_wireguard_address" ]; then
-  if [ -z "$wg_addr" ]; then
-    echo "wireguard address is required"
-    usage
-  fi
-  userdata_wireguard_address="$wg_addr"
 fi
 ################################################################################
 echo "Checking for home directory for ${userdata_admin_username}..."
