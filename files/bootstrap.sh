@@ -17,6 +17,7 @@ set -o pipefail
 set +u
 userdata_wireguard_address="$userdata_wireguard_address"
 userdata_admin_username="$userdata_admin_username"
+wg_addr="$wg_addr"
 set -u
 ################################################################################
 
@@ -27,7 +28,10 @@ function display_steps {
     echo "   -> While macOS is installing, allocate an ip address for the new machine"
     echo "2) Connect to network"
     echo "3) Create an account which will be the admin account"
-    echo "4) Open Terminal and run this script ( https://d2r.io/macos1 )"
+    echo "4) Open Terminal and run this script"
+    echo "   curl -fsSL https://d2r.io/macos1 > run.sh"
+    echo "   chmod 755 run.sh && sudo ./run.sh"
+
     echo "   As root?"
   else
     echo "Use cloud init"
@@ -36,21 +40,37 @@ function display_steps {
 display_steps
 
 function usage {
-  echo "userdata_admin_username=my-admin-user userdata_wireguard_address=a.b.c.d bootstrap.sh"
+  # echo "userdata_admin_username=my-admin-user userdata_wireguard_address=a.b.c.d run.sh"
+  echo "wg_addr=a.b.c.d run.sh"
   exit 1
 }
 
 # Validate params
-echo "TODO: Add code to rerun as root if not root."
-
+echo "Before running sudo, get the username of the current user."
 if [ -z "$userdata_admin_username" ]; then
-  echo "userdata_admin_username is required"
-  usage
+  user=$(whoami)
+  if [ "$user" = "root" ]; then
+    echo "userdata_admin_username is required"
+    usage
+  fi
+  userdata_admin_username="$user"
 fi
 
+echo "Be sure we're running as root"
+if [ $EUID != 0 ]; then
+  echo "Not root. Trying again with sudo..."
+  sudo bash "$0" "$@";
+  exit "$?";
+ fi
+
+
+
 if [ -z "$userdata_wireguard_address" ]; then
-  echo "userdata_wireguard_address is required"
-  usage
+  if [ -z "$wg_addr" ]; then
+    echo "wireguard address is required"
+    usage
+  fi
+  userdata_wireguard_address="$wg_addr"
 fi
 ################################################################################
 echo "Checking for home directory for ${userdata_admin_username}..."
