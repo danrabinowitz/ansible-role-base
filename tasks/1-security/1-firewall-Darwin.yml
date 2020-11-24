@@ -49,3 +49,14 @@
     - Reload pfconf
 
 # TODO: https://github.com/drduh/macOS-Security-and-Privacy-Guide#firewall
+
+# TODO: This should probably be in the system profile
+- name: Check for stealth mode
+  command: /usr/libexec/ApplicationFirewall/socketfilterfw --getstealthmode
+  register: stealth_mode_check_reg
+  changed_when: false
+  check_mode: no
+
+- name: Enable stealth mode
+  command: /usr/libexec/ApplicationFirewall/socketfilterfw --setstealthmode
+  when: stealth_mode_check_reg.stdout == "Stealth mode disabled"

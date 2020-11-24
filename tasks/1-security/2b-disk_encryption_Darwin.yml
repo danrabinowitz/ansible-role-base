@@ -15,6 +15,7 @@
   check_mode: no
 
 - name: Enable disk encryption
+  # -forceatlogin
   command: fdesetup enable -user {{ admin_username }} -defer /root/fde_recoverykey.plist
   when: not fdesetup_bool
 

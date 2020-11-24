@@ -28,6 +28,24 @@
     value: "FALSE"
     state: present
 
+- name: Check for custom user and Filevault
+  shell: fdesetup list | grep -c '^{{ custom_username }},'
+  register: custom_user_filevault_check_reg
+
+- name: Fail if custom user does not have access to Filevault
+  fail:
+    msg: "ERROR: {{ custom_username }} does not have access to Filevault. Run this: fdesetup add -usertoadd {{ custom_username }} -user {{ admin_username }}"
+  when: custom_user_filevault_check_reg.stdout != "1"
+
+# fdesetup list | grep -c '^bob,'
+
+# - name: Add custom user to Filevault
+#   command: fdesetup add -usertoadd {{ custom_username }} -user {{ admin_username }}
+#   # when: add_custom_user_reg.changed
+#   tags:
+#     - wip
+
+
 
 # pwpolicy -a adminuser -u usertoforcechange -setpolicy "newPasswordRequired=1"
 
