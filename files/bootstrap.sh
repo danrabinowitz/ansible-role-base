@@ -30,7 +30,7 @@ function display_steps {
     echo "3) Create an account which will be the admin account"
     echo "4) Open Terminal and run this script"
     echo "   curl -fsSL https://d2r.io/macos1 > run.sh"
-    echo "   chmod 755 run.sh && ./run.sh"
+    echo "   wg_addr=a.b.c.d bash run.sh"
   else
     echo "Use cloud init"
   fi
@@ -39,7 +39,7 @@ function display_steps {
 function usage {
 
   # echo "userdata_admin_username=my-admin-user userdata_wireguard_address=a.b.c.d run.sh"
-  echo "USAGE: wg_addr=a.b.c.d run.sh"
+  echo "USAGE: wg_addr=a.b.c.d bash run.sh"
   echo "-----"
   display_steps
   exit 1
