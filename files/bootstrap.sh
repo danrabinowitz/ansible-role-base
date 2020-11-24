@@ -37,11 +37,13 @@ function display_steps {
     echo "Use cloud init"
   fi
 }
-display_steps
 
 function usage {
+
   # echo "userdata_admin_username=my-admin-user userdata_wireguard_address=a.b.c.d run.sh"
-  echo "wg_addr=a.b.c.d run.sh"
+  echo "USAGE: wg_addr=a.b.c.d run.sh"
+  echo "-----"
+  display_steps
   exit 1
 }
 
