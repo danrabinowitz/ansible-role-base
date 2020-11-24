@@ -106,9 +106,7 @@ if [ "$(uname -s)" = "Darwin" ]; then
   # /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
   curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh > /tmp/brew-install.sh
   chmod 755 /tmp/brew-install.sh
-  /tmp/brew-install.sh
-  # brew install wireguard-tools socat
-  /usr/local/bin/brew install wireguard-tools socat
+  su - "$userdata_admin_username" -c "/tmp/brew-install.sh && /usr/local/bin/brew install wireguard-tools socat"
   wg_dir="/usr/local/etc/wireguard"
   interface="utun0"
 else
