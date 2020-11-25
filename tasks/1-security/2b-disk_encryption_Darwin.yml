@@ -3,6 +3,7 @@
   command: fdesetup status
   register: fdesetup_status
   check_mode: no
+  changed_when: false
 
 - set_fact:
     fdesetup_bool: "{{ fdesetup_status.stdout == 'FileVault is On.' }}"

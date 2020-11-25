@@ -31,6 +31,8 @@
 - name: Check for custom user and Filevault
   shell: fdesetup list | grep -c '^{{ custom_username }},'
   register: custom_user_filevault_check_reg
+  check_mode: no
+  changed_when: false
 
 - name: Fail if custom user does not have access to Filevault
   fail:
