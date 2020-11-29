@@ -125,7 +125,7 @@
 
 - name: Save and restart wg
   shell: "launchctl unload /Library/LaunchDaemons/com.wireguard.{{ wg_interface }}.plist; launchctl load -w /Library/LaunchDaemons/com.wireguard.{{ wg_interface }}.plist"
-  when: (wireguard_peer_vpn_ips_to_add | length>0) and (ansible_os_family == 'Debian')
+  when: (wireguard_peer_vpn_ips_to_add | length>0) and (ansible_os_family == 'Darwin')
 
 
 
