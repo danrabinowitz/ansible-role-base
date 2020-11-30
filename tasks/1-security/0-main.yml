@@ -16,9 +16,11 @@
 
 # add custom admin user
 - include: 3-create_admin_user.yml
+  tags:
+    - create_admin_user
 
-- include: 4-lock_root_password.yml
-  when: ansible_os_family == 'Debian'
+# - include: 4-lock_root_password.yml
+#   when: ansible_os_family == 'Debian'
 
 - include: 5-pam_google_authenticator.yml
   when: ansible_os_family == 'Debian'
