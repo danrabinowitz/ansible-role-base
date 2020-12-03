@@ -31,6 +31,7 @@
   local_action: "shell ssh -o ControlMaster=auto -o ControlPersist=1800s -o 'User=\"{{ admin_username }}\"' -o ConnectTimeout=10 -o ControlPath=/root/.ansible/cp/ansible-ssh-%h-%p-%r {{ real_ansible_ssh_host }} '/bin/sh -c '\"'\"'echo ~{{ admin_username }} && sleep 0'\"'\"''"
   changed_when: false
   check_mode: no
+  when: not (skip_ssh_setup | default(False))
   tags:
     - always
 

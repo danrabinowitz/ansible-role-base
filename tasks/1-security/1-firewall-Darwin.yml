@@ -1,3 +1,4 @@
+# ssh
 - name: Block all ssh connections by default
   lineinfile:
     path: /etc/pf.conf
@@ -47,6 +48,26 @@
     line: 'pass in inet proto tcp from 10.0.0.9/32 to any port 22 no state'
   notify:
     - Reload pfconf
+
+# VNC (screen sharing)
+- name: Block all connections by default
+  lineinfile:
+    path: /etc/pf.conf
+    line: 'block return in proto tcp from any to any port 5900'
+  notify:
+    - Reload pfconf
+  tags:
+    - wip
+
+- name: Allow connections from Dan's MBP
+  lineinfile:
+    path: /etc/pf.conf
+    line: 'pass in inet proto tcp from 192.168.192.1/32 to any port 5900 no state'
+  notify:
+    - Reload pfconf
+  tags:
+    - wip
+
 
 # TODO: https://github.com/drduh/macOS-Security-and-Privacy-Guide#firewall
 
