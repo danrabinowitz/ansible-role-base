@@ -56,8 +56,6 @@
     line: 'block return in proto tcp from any to any port 5900'
   notify:
     - Reload pfconf
-  tags:
-    - wip
 
 - name: Allow connections from Dan's MBP
   lineinfile:
@@ -65,8 +63,6 @@
     line: 'pass in inet proto tcp from 192.168.192.1/32 to any port 5900 no state'
   notify:
     - Reload pfconf
-  tags:
-    - wip
 
 
 # TODO: https://github.com/drduh/macOS-Security-and-Privacy-Guide#firewall

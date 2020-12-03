@@ -127,6 +127,21 @@
   shell: "launchctl unload /Library/LaunchDaemons/com.wireguard.{{ wg_interface }}.plist; launchctl load -w /Library/LaunchDaemons/com.wireguard.{{ wg_interface }}.plist"
   when: (wireguard_peer_vpn_ips_to_add | length>0) and (ansible_os_family == 'Darwin')
 
+# Set up forwarding
+- name: wireguard forwarding
+  include_tasks:
+    file: lib/wireguard_forwarding.yml
+    apply:
+      tags:
+        - wireguard_forward
+  vars:
+    name: "{{ wireguard_forwarding.routes[0].name }}"
+    src_ips: "{{ wireguard_forwarding.routes[0].src }}"
+    dst_ips: "{{ wireguard_forwarding.routes[0].dst }}"
+  tags:
+    - wireguard_forward
+
+
 
 
 

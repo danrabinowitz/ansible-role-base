@@ -1,0 +1,51 @@
+#!/bin/bash
+
+# Exit immediately if any command fails.
+set -e
+
+# Print a message to stderr when attempting to expand a variable that is not set. Also, immediately exit.
+set -u
+
+# Cause pipelines to fail on the first command which fails instead of dying later on down the pipeline.
+set -o pipefail
+################################################################################
+
+set +u
+updown="$1"
+interface="$2"
+set -u
+
+if [ -z "$updown" ]; then
+  echo "updown is required"
+  exit 1
+fi
+if [ -z "$interface" ]; then
+  echo "interface is required"
+  exit 1
+fi
+
+action_flag=""
+if [ "$updown" == "up" ]; then
+  action_flag="-A"
+fi
+if [ "$updown" == "down" ]; then
+  action_flag="-D"
+fi
+if [ -z "$action_flag" ]; then
+  echo "updown must be either up or down"
+  exit 1
+fi
+
+iptables "$action_flag" FORWARD -i "$interface" -j ACCEPT
+iptables "$action_flag" FORWARD -o "$interface" -j ACCEPT
+
+dst_ips=({{ dst_ips | default([]) | join(' ') }})
+src_ips=({{ src_ips | default([]) | join(' ') }})
+
+for dst in ${dst_ips[@]}; do
+  echo "taking action on dst=${dst}"
+  for src_ip in ${src_ips[@]}; do
+    echo "src_ip=${src_ip}"
+    iptables -t nat "$action_flag" POSTROUTING --src "$src_ip" --dst "$dst" -o "$interface" -j MASQUERADE
+  done
+done

@@ -1,0 +1,43 @@
+# - name: Debug name
+#   ansible.builtin.debug:
+#     var: name
+#   check_mode: no
+# - name: Debug src_ips
+#   ansible.builtin.debug:
+#     var: src_ips
+#   check_mode: no
+# - name: Debug dst_ips
+#   ansible.builtin.debug:
+#     var: dst_ips
+#   check_mode: no
+
+- name: install iptables-for-wg-forwarding
+  template:
+    src: "usr/local/sbin/iptables-for-wg-forwarding.j2"
+    dest: "/usr/local/sbin/iptables-for-wg-forwarding-{{ name }}"
+    owner: root
+    group: root
+    mode: 0700
+  register: iptables_for_wg_forwarding
+
+- name: Ensure PostUp is set for forwarding
+  lineinfile:
+    path: /etc/wireguard/wg0.conf
+    insertafter: '^SaveConfig = true'
+    # Wireguard replaces the "%i" with the interface coming up or down
+    regexp: '^PostUp = /usr/local/sbin/iptables-for-wg-forwarding-{{ name }} up %i'
+    line: 'PostUp = /usr/local/sbin/iptables-for-wg-forwarding-{{ name }} up %i'
+  register: wg_postup
+
+- name: Ensure PostDown is set for forwarding
+  lineinfile:
+    path: /etc/wireguard/wg0.conf
+    insertafter: '^SaveConfig = true'
+    # Wireguard replaces the "%i" with the interface coming up or down
+    regexp: '^PostDown = /usr/local/sbin/iptables-for-wg-forwarding-{{ name }} down %i'
+    line: 'PostDown = /usr/local/sbin/iptables-for-wg-forwarding-{{ name }} down %i'
+  register: wg_postdown
+
+- name: Save and restart wg
+  shell: "wg-quick save wg0 && wg-quick down wg0; wg-quick up wg0"
+  when: iptables_for_wg_forwarding.changed or wg_postup.changed or wg_postdown.changed
