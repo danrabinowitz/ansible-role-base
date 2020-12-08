@@ -17,7 +17,6 @@
   when: ansible_os_family == 'Debian'
 
 - include: 6-prometheus_monitoring.yml
-  when: ansible_os_family == 'Debian'
   tags:
     - prometheus_monitoring
 

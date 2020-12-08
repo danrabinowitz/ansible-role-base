@@ -1,0 +1,67 @@
+- name: Install node_exporter homebrew package
+  homebrew:
+    name: node_exporter
+    state: latest
+    # update_homebrew: true
+  become: true
+  become_user: "{{ admin_username }}"
+
+- name: Block all node exporter connections by default
+  lineinfile:
+    path: /etc/pf.conf
+    line: 'block return in proto tcp from any to any port 9100'
+  notify:
+    - Reload pfconf
+
+- name: Allow connections from prometheus server
+  lineinfile:
+    path: /etc/pf.conf
+    line: 'pass in inet proto tcp from 10.0.0.1/32 to any port 9100 no state'
+  notify:
+    - Reload pfconf
+
+- name: Create launchd plist
+  copy:
+    src: macos/Library/LaunchDaemons/homebrew.mxcl.node_exporter.plist
+    dest: /Library/LaunchDaemons/homebrew.mxcl.node_exporter.plist
+    owner: root
+    group: wheel
+    mode: 0644
+  register: plist
+
+# WARNING: This command requires input on the macos UI to accept. This is not a quiet operation.
+# I am disabling it so that it needs to be manually enabled.
+# - name: Start prometheus-node-exporter
+#   shell: "launchctl load -w /Library/LaunchDaemons/homebrew.mxcl.node_exporter.plist"
+#   when: plist.changed
+
+- name: Create textfile_collector dir
+  file:
+    path: "/var/lib/{{ item }}"
+    state: directory
+    owner: root
+    group: wheel
+    mode: 0755
+  with_items:
+    - node_exporter
+    - node_exporter/textfile_collector
+
+# - name: Update /etc/init.d/prometheus-node-exporter to use textfile_collector
+#   copy:
+#     src: etc/init.d/prometheus-node-exporter
+#     dest: /etc/init.d/prometheus-node-exporter
+#     owner: root
+#     group: wheel
+#     mode: 0755
+#   notify:
+#     - Restart prometheus-node-exporter Darwin
+
+- name: Fix args for prometheus-node-exporter
+  copy:
+    src: macos/usr/local/etc/node_exporter.args
+    dest: /usr/local/etc/node_exporter.args
+    owner: root
+    group: wheel
+    mode: 0644
+  notify:
+    - Restart prometheus-node-exporter Darwin

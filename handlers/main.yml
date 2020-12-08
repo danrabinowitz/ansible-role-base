@@ -16,9 +16,13 @@
 - name: Restart fail2ban
   service: name=fail2ban state=restarted
 
-- name: Restart prometheus-node-exporter
+- name: Restart prometheus-node-exporter Debian
   service: name=prometheus-node-exporter state=restarted
+  when: ansible_os_family == 'Debian'
 
+- name: Restart prometheus-node-exporter Darwin
+  shell: "launchctl load -w homebrew.mxcl.node_exporter; launchctl stop homebrew.mxcl.node_exporter; launchctl start homebrew.mxcl.node_exporter"
+  when: ansible_os_family == 'Darwin'
 
 # Darwin only
 - name: Reload pfconf

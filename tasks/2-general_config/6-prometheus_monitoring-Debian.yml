@@ -1,0 +1,68 @@
+- name: Install prometheus-node-exporter
+  apt:
+    name: prometheus-node-exporter
+    state: present
+    update_cache: yes
+    cache_valid_time: 3600
+    install_recommends: no
+
+# /usr/bin/prometheus-node-exporter
+- name: Install newer prometheus-node-exporter
+  copy:
+    src: usr/bin/prometheus-node-exporter
+    dest: /usr/bin/prometheus-node-exporter
+    owner: root
+    group: root
+    mode: 0755
+  notify:
+    - Restart prometheus-node-exporter Debian
+
+- name: "Allow access to node exporter from prometheus server's public ip only and only via eth0"
+  ufw:
+    rule: allow
+    port: "9100"
+    proto: tcp
+    from_ip: "{{ utility1_djrtechconsulting_com_public_ip }}"
+    direction: in
+    interface: eth0
+    delete: yes
+
+- name: "Allow access to node exporter from prometheus server's vpn ip only and only via vpn"
+  ufw:
+    rule: allow
+    port: "9100"
+    proto: tcp
+    from_ip: "10.0.0.1"
+    direction: in
+    interface: wg0
+
+- name: Create textfile_collector dir
+  file:
+    path: "/var/lib/{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+  with_items:
+    - node_exporter
+    - node_exporter/textfile_collector
+
+- name: Update /etc/init.d/prometheus-node-exporter to use textfile_collector
+  copy:
+    src: etc/init.d/prometheus-node-exporter
+    dest: /etc/init.d/prometheus-node-exporter
+    owner: root
+    group: root
+    mode: 0755
+  notify:
+    - Restart prometheus-node-exporter Debian
+
+- name: Fix args for prometheus-node-exporter
+  copy:
+    src: etc/default/prometheus-node-exporter
+    dest: /etc/default/prometheus-node-exporter
+    owner: root
+    group: root
+    mode: 0644
+  notify:
+    - Restart prometheus-node-exporter Debian
