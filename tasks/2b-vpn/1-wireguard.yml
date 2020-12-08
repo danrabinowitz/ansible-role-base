@@ -138,6 +138,7 @@
     name: "{{ wireguard_forwarding.routes[0].name }}"
     src_ips: "{{ wireguard_forwarding.routes[0].src }}"
     dst_ips: "{{ wireguard_forwarding.routes[0].dst }}"
+  when: wireguard_forwarding is defined
   tags:
     - wireguard_forward
 
