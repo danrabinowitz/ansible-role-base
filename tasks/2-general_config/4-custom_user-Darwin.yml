@@ -5,7 +5,7 @@
     createhome: yes
   register: add_custom_user_reg
 
-- name: Add custom user
+- name: Update custom user
   user:
     name: "{{ custom_username }}"
     password: changeme
@@ -82,3 +82,27 @@
     owner: "{{ custom_username }}"
     # group: "{{ custom_username }}"
     mode: 0600
+
+
+# custom_admin_user
+- name: Add custom ADMIN user
+  user:
+    name: "{{ custom_admin_user }}"
+    state: present
+    createhome: yes
+  register: add_custom_admin_user_reg
+  when: custom_admin_user is defined
+- name: Update custom ADMIN user
+  user:
+    name: "{{ custom_admin_user }}"
+    password: changeme
+    shell: /bin/zsh
+    state: present
+    # createhome: yes
+    # groups: wheel
+    # append: yes
+  when: add_custom_admin_user_reg.changed
+
+- name: Require password reset
+  command: pwpolicy -u "{{ custom_admin_user }}" -setpolicy "newPasswordRequired=1"
+  when: add_custom_admin_user_reg.changed
