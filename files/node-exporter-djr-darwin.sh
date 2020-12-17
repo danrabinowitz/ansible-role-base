@@ -10,6 +10,8 @@ set -u
 set -o pipefail
 
 ################################################################################
+# Init
+################################################################################
 function configure {
   if [ -z "${SOCAT_SOCKPORT:-}" ]; then
     mode="server"
@@ -23,6 +25,8 @@ function configure {
       # shellcheck source=/dev/null
       source "$CFG_FILE"
     fi
+
+    OS=$(uname)
   fi
 }
 
@@ -31,6 +35,9 @@ function init {
   configure
 }
 
+################################################################################
+# Server
+################################################################################
 function run_server {
   echo "Listening on TCP port ${PORT}"
   /usr/local/bin/socat TCP4-LISTEN:"$PORT",reuseaddr,fork SYSTEM:"$this_script"
@@ -38,24 +45,33 @@ function run_server {
   exit 1
 }
 
-function add_line {
-  local line
-  line="$1"
-  local lf
-  lf=$'\n'
-  # if [ -z "$http_response_body" ]; then
-  http_response_body="${http_response_body}${line}${lf}"
-  # else
-  # fi
-}
-
-function generate_http_response_body {
+################################################################################
+# Individual metrics
+################################################################################
+function hid_idle_time {
   # hid_idle_time
   # It is fast to get. On the order of 0.03 seconds.
+  local hid_idle_time
   hid_idle_time=$(ioreg -c IOHIDSystem | awk '/HIDIdleTime/ {print $NF/1000000000; exit}') || true
   add_line "hid_idle_time ${hid_idle_time}"
-  # http_response_body="${line}${lf}"
+}
 
+function time_machine {
+  # time_machine_*
+  local enabled
+  enabled=$(/usr/bin/defaults read /Library/Preferences/com.apple.TimeMachine AutoBackup 2>/dev/null || true)
+  [ "$enabled" == "1" ] || enabled="0"
+  add_line "time_machine_enabled ${enabled}"
+
+  if [ "$enabled" == "1" ];then
+    # TODO: Get all destinations, and get a descriptive name for each
+    # lastBackupTimestamp=$(date -j -f "%a %b %d %T %Z %Y" "$(/usr/libexec/PlistBuddy -c "Print Destinations:0:SnapshotDates" /Library/Preferences/com.apple.TimeMachine.plist | tail -n 2 | head -n 1 | awk '{$1=$1};1')" "+%Y-%m-%d %H:%M:%S")
+    lastBackupTimestamp=$(date -j -f "%a %b %d %T %Z %Y" "$(/usr/libexec/PlistBuddy -c "Print Destinations:0:SnapshotDates" /Library/Preferences/com.apple.TimeMachine.plist | tail -n 2 | head -n 1 | awk '{$1=$1};1')" "+%s")
+    add_line "time_machine_last_snapshot_timestamp{destination_id=\"0\"} ${lastBackupTimestamp}"
+  fi
+}
+
+function ping_metrics {
   # ping_*
   # It is quite slow. We should look into parallelizing this.
   # Set PING_HOSTS in the config file or as an env var, like this.
@@ -90,17 +106,47 @@ function generate_http_response_body {
       add_line "ping_time_${host_for_metrics}_ms ${time_ms}"
     done
   fi
+}
 
-  # time_machine_*
-  enabled=$(/usr/bin/defaults read /Library/Preferences/com.apple.TimeMachine AutoBackup)
-# if [ "$enabled" == "1" ];then
-# lastBackupTimestamp=`date -j -f "%a %b %d %T %Z %Y" "$(/usr/libexec/PlistBuddy -c "Print Destinations:0:SnapshotDates" /Library/Preferences/com.apple.TimeMachine.plist | tail -n 2 | head -n 1 | awk '{$1=$1};1')" "+%Y-%m-%d %H:%M:%S"`
-# echo "<result>$lastBackupTimestamp</result>"
-# else
-# echo "<result>Disabled</result>"
-# fi
+################################################################################
+# OS
+################################################################################
+function darwin {
+  hid_idle_time
+  time_machine
+}
 
+function linux {
+    echo "Unsupported OS: $OS"
+    exit 1
+}
 
+################################################################################
+# Handler
+################################################################################
+function add_line {
+  local line
+  line="$1"
+  local lf
+  lf=$'\n'
+  # if [ -z "$http_response_body" ]; then
+  http_response_body="${http_response_body}${line}${lf}"
+  # else
+  # fi
+}
+
+function generate_http_response_body {
+  # Metrics for all/any OS
+  ping_metrics
+
+  if [ "$OS" == "Darwin" ]; then
+    darwin
+  elif [ "$OS" == "Linux" ]; then
+    linux
+  else
+    echo "Unsupported OS: $OS"
+    exit 1
+  fi
 }
 
 function run_handler {
@@ -197,7 +243,9 @@ function run_handler {
   fi
 
 }
-
+################################################################################
+# Main
+################################################################################
 function main {
   init
 
