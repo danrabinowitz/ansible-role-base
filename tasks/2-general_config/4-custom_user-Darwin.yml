@@ -29,7 +29,7 @@
     state: present
 
 - name: Check for custom user and Filevault
-  shell: fdesetup list | grep -c '^{{ custom_username }},'
+  shell: fdesetup list | grep -c '^{{ custom_username }},' || true
   register: custom_user_filevault_check_reg
   check_mode: no
   changed_when: false
@@ -38,6 +38,7 @@
   fail:
     msg: "ERROR: {{ custom_username }} does not have access to Filevault. Run this: fdesetup add -usertoadd {{ custom_username }} -user {{ admin_username }}"
   when: custom_user_filevault_check_reg.stdout != "1"
+  # when: not ansible_check_mode
 
 # fdesetup list | grep -c '^bob,'
 
