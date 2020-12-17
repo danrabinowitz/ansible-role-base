@@ -67,7 +67,7 @@
 
 - name: Start prometheus-node-exporter
   shell: "launchctl load -w /Library/LaunchDaemons/homebrew.mxcl.node_exporter.plist"
-  # when: plist.changed
+  when: plist.changed
 
 - name: Create textfile_collector dir
   file:

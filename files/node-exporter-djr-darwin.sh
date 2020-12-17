@@ -19,8 +19,10 @@ function configure {
     mode="handler"
 
     CFG_FILE="${CFG_FILE:-/etc/node-exporter-darwin.sh}"
-    # shellcheck source=/dev/null
-    source "$CFG_FILE"
+    if [ -f "$CFG_FILE" ] && [ -r "$CFG_FILE" ]; then
+      # shellcheck source=/dev/null
+      source "$CFG_FILE"
+    fi
   fi
 }
 
