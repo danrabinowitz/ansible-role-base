@@ -29,11 +29,45 @@
     mode: 0644
   register: plist
 
-# WARNING: This command requires input on the macos UI to accept. This is not a quiet operation.
-# I am disabling it so that it needs to be manually enabled.
-# - name: Start prometheus-node-exporter
-#   shell: "launchctl load -w /Library/LaunchDaemons/homebrew.mxcl.node_exporter.plist"
-#   when: plist.changed
+
+- name: Get node_exporter path
+  shell: echo "$(brew --cellar node_exporter)/$(brew list --versions node_exporter | awk '{print $2}')/bin/node_exporter"
+  register: node_exporter_path_reg
+  check_mode: no
+  changed_when: false
+  become: true
+  become_user: "{{ admin_username }}"
+
+- name: Debug node_exporter_path_reg
+  debug:
+    var: node_exporter_path_reg
+    # verbosity: "1"
+  check_mode: no
+
+- name: Check if prometheus-node-exporter if allowed in the Application Firewall (ALF)
+  shell: "/usr/libexec/ApplicationFirewall/socketfilterfw --listapps | grep -c '{{ node_exporter_path_reg.stdout }}' || true"
+  register: alf_exporter_reg
+  check_mode: no
+  changed_when: false
+
+- set_fact:
+    alf_exporter_allowed: "{{ alf_exporter_reg.stdout == '1' }}"
+  check_mode: no
+
+- name: Debug alf_exporter_allowed
+  debug:
+    var: alf_exporter_allowed
+    # verbosity: "1"
+  check_mode: no
+
+- name: Unblock prometheus-node-exporter for the Application Firewall (ALF)
+  # shell: "/usr/libexec/ApplicationFirewall/socketfilterfw --unblockapp {{ node_exporter_path_reg.stdout }}"
+  shell: "/usr/libexec/ApplicationFirewall/socketfilterfw --add {{ node_exporter_path_reg.stdout }}"
+  when: not alf_exporter_allowed
+
+- name: Start prometheus-node-exporter
+  shell: "launchctl load -w /Library/LaunchDaemons/homebrew.mxcl.node_exporter.plist"
+  # when: plist.changed
 
 - name: Create textfile_collector dir
   file:
@@ -65,3 +99,25 @@
     mode: 0644
   notify:
     - Restart prometheus-node-exporter Darwin
+
+- name: Install node-exporter-shell
+  copy:
+    src: node-exporter-djr-darwin.sh
+    dest: /usr/local/sbin/node-exporter-shell
+    owner: root
+    group: wheel
+    mode: 0755
+- name: Create launchd plist for node-exporter-shell
+  copy:
+    src: macos/Library/LaunchDaemons/com.djrtechconsulting.node_exporter_shell.plist
+    dest: /Library/LaunchDaemons/com.djrtechconsulting.node_exporter_shell.plist
+    owner: root
+    group: wheel
+    mode: 0644
+  register: shell_plist
+  # tags:
+  #   - wip
+
+- name: Start prometheus-node-exporter-shell
+  shell: "launchctl load -w /Library/LaunchDaemons/com.djrtechconsulting.node_exporter_shell.plist"
+  when: shell_plist.changed

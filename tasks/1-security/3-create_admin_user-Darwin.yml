@@ -38,3 +38,19 @@
     line: '{{ admin_username }} ALL=(ALL) NOPASSWD: ALL'
     validate: visudo -cf %s
   when: not (deny_passwordless_sudo_for_admin | default(False))
+
+# Make sure we have /usr/local/bin in $PATH
+- name: Create files
+  file:
+    path: /Users/{{ admin_username }}/.bashrc
+    state: touch
+    mode: "0600"
+    owner: "{{ admin_username }}"
+    group: staff
+    modification_time: preserve
+    access_time: preserve
+- name: Ensure /usr/local/bin is in $PATH in .bashrc
+  lineinfile:
+    dest: /Users/{{ admin_username }}/.bashrc
+    state: present
+    line: 'export PATH="${PATH}:/usr/local/bin"'

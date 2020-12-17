@@ -31,7 +31,7 @@ function init {
 
 function run_server {
   echo "Listening on TCP port ${PORT}"
-  socat TCP4-LISTEN:"$PORT",reuseaddr,fork SYSTEM:"$this_script"
+  /usr/local/bin/socat TCP4-LISTEN:"$PORT",reuseaddr,fork SYSTEM:"$this_script"
   echo "socat listener exited"
   exit 1
 }
@@ -88,6 +88,17 @@ function generate_http_response_body {
       add_line "ping_time_${host_for_metrics}_ms ${time_ms}"
     done
   fi
+
+  # time_machine_*
+  enabled=$(/usr/bin/defaults read /Library/Preferences/com.apple.TimeMachine AutoBackup)
+# if [ "$enabled" == "1" ];then
+# lastBackupTimestamp=`date -j -f "%a %b %d %T %Z %Y" "$(/usr/libexec/PlistBuddy -c "Print Destinations:0:SnapshotDates" /Library/Preferences/com.apple.TimeMachine.plist | tail -n 2 | head -n 1 | awk '{$1=$1};1')" "+%Y-%m-%d %H:%M:%S"`
+# echo "<result>$lastBackupTimestamp</result>"
+# else
+# echo "<result>Disabled</result>"
+# fi
+
+
 }
 
 function run_handler {
