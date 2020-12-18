@@ -1,4 +1,10 @@
 - include: 10-motd.yml
   when: ansible_os_family == 'Debian'
+
+- include: 11-hostname.yml
+  when: ansible_os_family == 'Darwin'
+  tags:
+    - hostname
+
 - include: 20-dotfiles.yml
   when: ansible_os_family == 'Debian'
