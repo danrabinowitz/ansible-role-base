@@ -95,7 +95,7 @@ mkdir -p "${home}/.ssh"
 chown "$userdata_admin_username" "${home}/.ssh"
 chmod 700 "${home}/.ssh"
 echo "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAZ0+EyH5FgErxe7B5Vd5NT18vlaBVPC1yt9hlwGCO2J dan@mbp" > "${home}/.ssh/authorized_keys"
-chown "$userdata_admin_username" "${home}/.ssh"
+chown "$userdata_admin_username" "${home}/.ssh/authorized_keys"
 chmod 600 "${home}/.ssh/authorized_keys"
 
 echo "Installing wireguard..."
