@@ -82,7 +82,7 @@
 
 
 - name: Get wireguard-go path
-  shell: echo "$(brew --cellar wireguard-go)/$(brew list --versions wireguard-go | awk '{print $2}')/bin/wireguard-go"
+  shell: echo "$(/usr/local/bin/brew --cellar wireguard-go)/$(/usr/local/bin/brew list --versions wireguard-go | awk '{print $2}')/bin/wireguard-go"
   register: wireguard_go_path_reg
   check_mode: no
   changed_when: false
