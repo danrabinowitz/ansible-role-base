@@ -121,6 +121,7 @@ fi
 echo "Creating wireguard configuration..."
 mkdir -p "$wg_dir" && chown root:wheel "$wg_dir" && chmod 700 "$wg_dir"
 wg genkey | tee "${wg_dir}/privatekey" | wg pubkey > "${wg_dir}/publickey"
+chmod 400 "${wg_dir}/privatekey"
 
 cat <<EOF >${wg_dir}/${interface}.conf
 [Interface]
@@ -138,7 +139,9 @@ EOF
 
 if [ "$(uname -s)" = "Darwin" ]; then
   echo "Sharing public key on wg port. Run this command to get it:"
-  ip=$(ifconfig en1 | grep 'inet ' | awk '{print $2}')
+
+  ip=$(ifconfig -au inet | grep inet | grep -v 127.0.0.1 | awk '{print $2}' | head -1)
+  # ip=$(ifconfig en1 | grep 'inet ' | awk '{print $2}')
   echo "echo | socat udp4:${ip}:51820 -"
   cat ${wg_dir}/publickey| socat -u STDIN udp4-listen:51820
   echo "Shared. Now starting wg..."
