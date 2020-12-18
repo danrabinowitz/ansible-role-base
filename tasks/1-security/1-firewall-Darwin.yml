@@ -75,5 +75,63 @@
   check_mode: no
 
 - name: Enable stealth mode
-  command: /usr/libexec/ApplicationFirewall/socketfilterfw --setstealthmode
+  command: /usr/libexec/ApplicationFirewall/socketfilterfw --setstealthmode on
   when: stealth_mode_check_reg.stdout == "Stealth mode disabled"
+
+
+
+
+- name: Get wireguard-go path
+  shell: echo "$(brew --cellar wireguard-go)/$(brew list --versions wireguard-go | awk '{print $2}')/bin/wireguard-go"
+  register: wireguard_go_path_reg
+  check_mode: no
+  changed_when: false
+  become: true
+  become_user: "{{ admin_username }}"
+
+- name: Debug wireguard_go_path_reg
+  debug:
+    var: wireguard_go_path_reg
+    # verbosity: "1"
+  check_mode: no
+
+- name: Check if wireguard if allowed in the Application Firewall (ALF)
+  shell: "/usr/libexec/ApplicationFirewall/socketfilterfw --listapps | grep -c '{{ wireguard_go_path_reg.stdout }}' || true"
+  register: alf_wireguard_reg
+  check_mode: no
+  changed_when: false
+
+- set_fact:
+    alf_wireguard_allowed: "{{ alf_wireguard_reg.stdout == '1' }}"
+  check_mode: no
+
+- name: Debug alf_wireguard_allowed
+  debug:
+    var: alf_wireguard_allowed
+    # verbosity: "1"
+  check_mode: no
+
+- name: Unblock wireguard for the Application Firewall (ALF)
+  # shell: "/usr/libexec/ApplicationFirewall/socketfilterfw --unblockapp {{ wireguard_go_path_reg.stdout }}"
+  shell: "/usr/libexec/ApplicationFirewall/socketfilterfw --add {{ wireguard_go_path_reg.stdout }}"
+  when: not alf_wireguard_allowed
+
+
+
+
+
+
+# Enable ALF firewall
+- name: Check if the Application Firewall (ALF) is enabled
+  shell: "/usr/libexec/ApplicationFirewall/socketfilterfw --getglobalstate | grep -c 'Firewall is enabled' || true"
+  register: alf_enabled_reg
+  check_mode: no
+  changed_when: false
+
+- set_fact:
+    alf_enabled: "{{ alf_enabled_reg.stdout == '1' }}"
+  check_mode: no
+
+- name: Enable the Application Firewall (ALF)
+  shell: /usr/libexec/ApplicationFirewall/socketfilterfw --setglobalstate on
+  when: not alf_enabled

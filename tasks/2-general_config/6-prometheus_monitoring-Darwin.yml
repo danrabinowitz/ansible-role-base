@@ -118,6 +118,41 @@
   # tags:
   #   - wip
 
+- name: Get socat path
+  shell: echo "$(brew --cellar socat)/$(brew list --versions socat | awk '{print $2}')/bin/socat"
+  register: socat_path_reg
+  check_mode: no
+  changed_when: false
+  become: true
+  become_user: "{{ admin_username }}"
+
+- name: Debug socat_path_reg
+  debug:
+    var: socat_path_reg
+    # verbosity: "1"
+  check_mode: no
+
+- name: Check if socat if allowed in the Application Firewall (ALF)
+  shell: "/usr/libexec/ApplicationFirewall/socketfilterfw --listapps | grep -c '{{ socat_path_reg.stdout }}' || true"
+  register: alf_socat_reg
+  check_mode: no
+  changed_when: false
+
+- set_fact:
+    alf_socat_allowed: "{{ alf_socat_reg.stdout == '1' }}"
+  check_mode: no
+
+- name: Debug alf_socat_allowed
+  debug:
+    var: alf_socat_allowed
+    # verbosity: "1"
+  check_mode: no
+
+- name: Unblock socat for the Application Firewall (ALF)
+  # shell: "/usr/libexec/ApplicationFirewall/socketfilterfw --unblockapp {{ socat_path_reg.stdout }}"
+  shell: "/usr/libexec/ApplicationFirewall/socketfilterfw --add {{ socat_path_reg.stdout }}"
+  when: not alf_socat_allowed
+
 - name: Start prometheus-node-exporter-shell
   shell: "launchctl load -w /Library/LaunchDaemons/com.djrtechconsulting.node_exporter_shell.plist"
   when: shell_plist.changed
