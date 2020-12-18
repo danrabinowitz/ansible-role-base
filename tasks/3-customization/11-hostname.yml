@@ -6,4 +6,4 @@
 
 - name: Set hostname
   shell: scutil --set ComputerName "{{ custom_hostname }}" && scutil --set LocalHostName "{{ custom_hostname_restricted_chars }}" && scutil --set HostName "{{ custom_hostname_restricted_chars }}"
-  when: custom_hostname is defined and hostname_reg.stdout != custom_hostname
+  when: custom_hostname is defined and hostname_reg.stdout != custom_hostname_restricted_chars

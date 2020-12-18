@@ -31,7 +31,7 @@
 
 
 - name: Get node_exporter path
-  shell: echo "$(brew --cellar node_exporter)/$(brew list --versions node_exporter | awk '{print $2}')/bin/node_exporter"
+  shell: echo "$(/usr/local/bin/brew --cellar node_exporter)/$(/usr/local/bin/brew list --versions node_exporter | awk '{print $2}')/bin/node_exporter"
   register: node_exporter_path_reg
   check_mode: no
   changed_when: false
@@ -119,7 +119,7 @@
   #   - wip
 
 - name: Get socat path
-  shell: echo "$(brew --cellar socat)/$(brew list --versions socat | awk '{print $2}')/bin/socat"
+  shell: echo "$(/usr/local/bin/brew --cellar socat)/$(/usr/local/bin/brew list --versions socat | awk '{print $2}')/bin/socat"
   register: socat_path_reg
   check_mode: no
   changed_when: false
