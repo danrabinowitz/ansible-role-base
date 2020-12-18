@@ -22,8 +22,8 @@
   changed_when: false
   when: not (do_not_hide_admin_user | default(False))
 
-- name: Create user
-  command: dscl . create /Users/{{ admin_username }} IsHidden 1
+- name: Set IsHidden property
+  shell: dscl . create /Users/{{ admin_username }} IsHidden 1 && chflags hidden /Users/{{ admin_username }}
   when: not (do_not_hide_admin_user | default(False)) and (admin_user_hidden_reg.stdout != "1")
 
 # mv /Users/$LOCAL_ADMIN_SHORTNAME /var/$LOCAL_ADMIN_SHORTNAME # Moves the admin home folder to /var

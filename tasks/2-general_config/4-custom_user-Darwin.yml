@@ -5,10 +5,18 @@
     createhome: yes
   register: add_custom_user_reg
 
+- name: Get user password
+  pause:
+    prompt: Enter the password for the newly-created user {{ custom_username }}
+    echo: no
+  register: custom_user_pw
+  no_log: true
+  when: add_custom_user_reg.changed
+
 - name: Update custom user
   user:
     name: "{{ custom_username }}"
-    password: changeme
+    password: "{{ custom_user_pw }}"
     shell: /bin/zsh
     state: present
     # createhome: yes
@@ -16,9 +24,12 @@
     # append: yes
   when: add_custom_user_reg.changed
 
-- name: Require password reset
-  command: pwpolicy -u "{{ custom_username }}" -setpolicy "newPasswordRequired=1"
-  when: add_custom_user_reg.changed
+# - name: Require password reset
+#   command: pwpolicy -u "{{ custom_username }}" -setpolicy "newPasswordRequired=1"
+#   when: add_custom_user_reg.changed
+- name: Set Real Name
+  command: dscl . create /Users/{{ custom_username }} RealName "{{ custom_user_full_name }}"
+  when: add_custom_user_reg.changed and custom_user_full_name is defined
 
 # sudo defaults write /Library/Preferences/com.apple.loginwindow SHOWOTHERUSERS_MANAGED -bool FALSE
 - community.general.osx_defaults:
@@ -95,7 +106,7 @@
 - name: Update custom ADMIN user
   user:
     name: "{{ custom_admin_user }}"
-    password: changeme
+    password: "{{ custom_user_pw }}{{ custom_user_pw }}"
     shell: /bin/zsh
     state: present
     # createhome: yes
@@ -103,6 +114,15 @@
     # append: yes
   when: add_custom_admin_user_reg.changed
 
-- name: Require password reset
-  command: pwpolicy -u "{{ custom_admin_user }}" -setpolicy "newPasswordRequired=1"
-  when: add_custom_admin_user_reg.changed
+- name: Check if user is hidden
+  shell: dscl . read /Users/{{ custom_admin_user }} IsHidden | awk '{print $2}'
+  register: custom_admin_user_hidden_reg
+  check_mode: no
+  changed_when: false
+- name: Set IsHidden property
+  shell: dscl . create /Users/{{ custom_admin_user }} IsHidden 1 && chflags hidden /Users/{{ custom_admin_user }}
+  when: admin_user_hidden_reg.stdout != "1"
+
+# - name: Require password reset
+#   command: pwpolicy -u "{{ custom_admin_user }}" -setpolicy "newPasswordRequired=1"
+#   when: add_custom_admin_user_reg.changed
