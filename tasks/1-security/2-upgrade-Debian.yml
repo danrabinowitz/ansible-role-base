@@ -1,0 +1,14 @@
+- name: "Security : Upgrade  : Install aptitude before performing any bulk upgrades"
+  apt:
+    name: ['aptitude', 'python-apt']
+    state: present
+    update_cache: yes
+    install_recommends: no
+    force_apt_get: yes
+
+# 9May2019: I am disabling this for now, because I have concerns related to the DB outages. Test on a dummy system.
+- name: "Security : Upgrade : Upgrade APT to the latest packages"
+  apt:
+    upgrade: safe
+# 9May2019: I am disabling this for now, because I have concerns related to the DB outages. Test on a dummy system.
+  when: False

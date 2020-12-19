@@ -1,4 +1,23 @@
 - set_fact:
+    wg_dir: "/usr/local/etc/wireguard"
+  when: ansible_os_family == 'Darwin'
+- set_fact:
+    wg_dir: "/etc/wireguard"
+  when: ansible_os_family == 'Debian'
+- name: Set perms for wg dir
+  file:
+    path: "{{ wg_dir }}"
+    owner: root
+    group: "{{ wheel_group }}"
+    mode: '0700'
+- name: Set perms for wg private key
+  file:
+    path: "{{ wg_dir }}/privatekey"
+    owner: root
+    group: "{{ wheel_group }}"
+    mode: '0400'
+
+- set_fact:
     wireguard_peer_machine_names: "{{ wireguard_peer_machine_names_core | union(wireguard_peer_machine_names_additional_for_group) | difference( [ hostvars[inventory_hostname]['do_name'] ] ) }}"
   check_mode: no
   tags:

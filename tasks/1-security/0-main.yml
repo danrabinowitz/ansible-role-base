@@ -5,7 +5,6 @@
 
 # upgrade
 - include: 2-upgrade.yml
-  when: ansible_os_family == 'Debian'
 
 - include: 2b-volumes.yml
   when: ansible_os_family == 'Debian'
