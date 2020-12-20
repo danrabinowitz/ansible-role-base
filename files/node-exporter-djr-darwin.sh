@@ -65,9 +65,100 @@ function time_machine {
 
   if [ "$enabled" == "1" ];then
     # TODO: Get all destinations, and get a descriptive name for each
-    # lastBackupTimestamp=$(date -j -f "%a %b %d %T %Z %Y" "$(/usr/libexec/PlistBuddy -c "Print Destinations:0:SnapshotDates" /Library/Preferences/com.apple.TimeMachine.plist | tail -n 2 | head -n 1 | awk '{$1=$1};1')" "+%Y-%m-%d %H:%M:%S")
-    lastBackupTimestamp=$(date -j -f "%a %b %d %T %Z %Y" "$(/usr/libexec/PlistBuddy -c "Print Destinations:0:SnapshotDates" /Library/Preferences/com.apple.TimeMachine.plist | tail -n 2 | head -n 1 | awk '{$1=$1};1')" "+%s")
-    add_line "time_machine_last_snapshot_timestamp{destination_id=\"0\"} ${lastBackupTimestamp}"
+    local rc
+    i=0
+    while true; do
+      # set +e
+      /usr/libexec/PlistBuddy -c "Print Destinations:$i" /Library/Preferences/com.apple.TimeMachine.plist > /dev/null 2>&1
+      rc=$?
+      # set -e
+      if [ $rc -ne 0 ]; then
+        break
+      fi
+      # We have an ith destination
+      # Get the alias folder name
+      len_hex=$(/usr/libexec/PlistBuddy -c "Print Destinations:${i}:BackupAlias" /Library/Preferences/com.apple.TimeMachine.plist | head -c11 | tail -c1 | xxd -ps)
+      len=$((16#$len_hex))
+      folder_name=$(/usr/libexec/PlistBuddy -c "Print Destinations:${i}:BackupAlias" /Library/Preferences/com.apple.TimeMachine.plist | head -c$((11+len)) | tail -c"$len")
+      >&2 echo "folder_name=$folder_name"
+
+
+      # Get the last property of the BackupAlias, which is formatted like this:
+      # afp://user@host._afpovertcp._tcp.local./Time%20Machine%20Folder
+      full_name1=$(/usr/libexec/PlistBuddy -c "Print Destinations:${i}:BackupAlias" /Library/Preferences/com.apple.TimeMachine.plist | LANG=C LC_ALL=C sed 's/[^[:print:]\r\t]/ /g' | rev | awk '{print $1}' | rev)
+      rc=$?
+      if [ $rc -ne 0 ]; then
+        >&2 echo "Error getting full_name1 for i=$i"
+        i=$((i + 1))
+        continue
+      fi
+
+      length_byte_hex=$(echo -n "$full_name1" | head -c1 | xxd -ps)
+      length_byte=$((16#$length_byte_hex))
+      length=$((${#full_name1}-1))
+      if [ $length_byte -ne $length ]; then
+        >&2 echo "Error parsing BackupAlias for i=$i"
+        i=$((i + 1))
+        continue
+      fi
+
+      full_name2=$(echo -n "$full_name1" | tail -c"$length")
+      >&2 echo "$full_name2"
+      # Parse full_name2 to get host and path
+      local host
+      host=$(echo "$full_name2" | tr '@.' ' ' | cut -d' ' -f2)
+
+      local head_length
+      head_length=$(echo "$full_name2" | sed 's/\/\///' | tr / ' ' | cut -d' ' -f1 | awk '{print length+2}')
+      local tail_length
+      tail_length=$((${#full_name2}-head_length))
+      local path
+      path=$(echo -n "$full_name2" | tail -c"$tail_length")
+      path=$(urldecode "$path")
+
+      local destination_id
+      destination_id=$(/usr/libexec/PlistBuddy -c "Print Destinations:${i}:DestinationID" /Library/Preferences/com.apple.TimeMachine.plist)
+
+
+      local labels
+      labels="backup_host=\"${host}\",backup_path=\"${path}\",destination_id=\"${destination_id}\""
+
+
+      local result
+      result=$(/usr/libexec/PlistBuddy -c "Print Destinations:${i}:RESULT" /Library/Preferences/com.apple.TimeMachine.plist)
+      add_line "time_machine_result{${labels}} ${result}"
+
+      local bytes_used
+      bytes_used=$(/usr/libexec/PlistBuddy -c "Print Destinations:${i}:BytesUsed" /Library/Preferences/com.apple.TimeMachine.plist)
+      add_line "time_machine_bytes_used{${labels}} ${bytes_used}"
+
+      local consistency_scan_at
+      consistency_scan_at=$(date -j -f "%a %b %d %T %Z %Y" "$(/usr/libexec/PlistBuddy -c "Print Destinations:${i}:ConsistencyScanDate" /Library/Preferences/com.apple.TimeMachine.plist )" "+%s")
+      add_line "time_machine_consistency_scan_at{${labels}} ${consistency_scan_at}"
+
+      local last_known_encryption_state
+      last_known_encryption_state=$(/usr/libexec/PlistBuddy -c "Print Destinations:${i}:LastKnownEncryptionState" /Library/Preferences/com.apple.TimeMachine.plist)
+      if [ "$last_known_encryption_state" = "Encrypted" ]; then
+        last_known_encryption_state=1
+      else
+        last_known_encryption_state=0
+      fi
+      add_line "time_machine_last_known_encryption_state{${labels}} ${last_known_encryption_state}"
+
+      local bytes_available
+      bytes_available=$(/usr/libexec/PlistBuddy -c "Print Destinations:${i}:BytesAvailable" /Library/Preferences/com.apple.TimeMachine.plist)
+      add_line "time_machine_bytes_available{${labels}} ${bytes_available}"
+
+      local reference_local_snapshot_at
+      reference_local_snapshot_at=$(date -j -f "%a %b %d %T %Z %Y" "$(/usr/libexec/PlistBuddy -c "Print Destinations:${i}:ReferenceLocalSnapshotDate" /Library/Preferences/com.apple.TimeMachine.plist )" "+%s")
+      add_line "time_machine_reference_local_snapshot_at{${labels}} ${reference_local_snapshot_at}"
+
+      local lastBackupTimestamp
+      lastBackupTimestamp=$(date -j -f "%a %b %d %T %Z %Y" "$(/usr/libexec/PlistBuddy -c "Print Destinations:${i}:SnapshotDates" /Library/Preferences/com.apple.TimeMachine.plist | tail -n 2 | head -n 1 | awk '{$1=$1};1')" "+%s")
+      add_line "time_machine_lastBackupTimestamp{${labels}} ${lastBackupTimestamp}"
+
+      i=$((i + 1))
+    done
   fi
 }
 
@@ -243,6 +334,11 @@ function run_handler {
   fi
 
 }
+################################################################################
+# Helpers
+################################################################################
+function urldecode() { : "${*//+/ }"; echo -e "${_//%/\\x}"; }
+
 ################################################################################
 # Main
 ################################################################################
