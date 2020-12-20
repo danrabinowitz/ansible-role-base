@@ -21,8 +21,8 @@
     - Reload pfconf
 
 - name: Create launchd plist
-  copy:
-    src: macos/Library/LaunchDaemons/homebrew.mxcl.node_exporter.plist
+  template:
+    src: macos/Library/LaunchDaemons/homebrew.mxcl.node_exporter.plist.j2
     dest: /Library/LaunchDaemons/homebrew.mxcl.node_exporter.plist
     owner: root
     group: wheel
@@ -152,6 +152,20 @@
   # shell: "/usr/libexec/ApplicationFirewall/socketfilterfw --unblockapp {{ socat_path_reg.stdout }}"
   shell: "/usr/libexec/ApplicationFirewall/socketfilterfw --add {{ socat_path_reg.stdout }}"
   when: not alf_socat_allowed
+
+- name: Block all node exporter connections by default
+  lineinfile:
+    path: /etc/pf.conf
+    line: 'block return in proto tcp from any to any port 9806'
+  notify:
+    - Reload pfconf
+
+- name: Allow connections from prometheus server
+  lineinfile:
+    path: /etc/pf.conf
+    line: 'pass in inet proto tcp from 10.0.0.1/32 to any port 9806 no state'
+  notify:
+    - Reload pfconf
 
 - name: Start prometheus-node-exporter-shell
   shell: "launchctl load -w /Library/LaunchDaemons/com.djrtechconsulting.node_exporter_shell.plist"

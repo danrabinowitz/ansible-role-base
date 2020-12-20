@@ -28,6 +28,9 @@ function configure {
 
     OS=$(uname)
   fi
+
+  # Anything other than "" will cause the handler to log
+  log_handler=""
 }
 
 function init {
@@ -58,6 +61,8 @@ function hid_idle_time {
 
 function time_machine {
   # time_machine_*
+  >&2 echo "Start of time_machine"
+
   local enabled
   enabled=$(/usr/bin/defaults read /Library/Preferences/com.apple.TimeMachine AutoBackup 2>/dev/null || true)
   [ "$enabled" == "1" ] || enabled="0"
@@ -68,10 +73,10 @@ function time_machine {
     local rc
     i=0
     while true; do
-      # set +e
+      set +e
       /usr/libexec/PlistBuddy -c "Print Destinations:$i" /Library/Preferences/com.apple.TimeMachine.plist > /dev/null 2>&1
       rc=$?
-      # set -e
+      set -e
       if [ $rc -ne 0 ]; then
         break
       fi
@@ -85,8 +90,10 @@ function time_machine {
 
       # Get the last property of the BackupAlias, which is formatted like this:
       # afp://user@host._afpovertcp._tcp.local./Time%20Machine%20Folder
+      set +e
       full_name1=$(/usr/libexec/PlistBuddy -c "Print Destinations:${i}:BackupAlias" /Library/Preferences/com.apple.TimeMachine.plist | LANG=C LC_ALL=C sed 's/[^[:print:]\r\t]/ /g' | rev | awk '{print $1}' | rev)
       rc=$?
+      set -e
       if [ $rc -ne 0 ]; then
         >&2 echo "Error getting full_name1 for i=$i"
         i=$((i + 1))
@@ -203,8 +210,11 @@ function ping_metrics {
 # OS
 ################################################################################
 function darwin {
+  >&2 echo "Start of darwin"
   hid_idle_time
+  >&2 echo "After hid"
   time_machine
+  >&2 echo "End of darwin"
 }
 
 function linux {
@@ -224,11 +234,18 @@ function add_line {
   http_response_body="${http_response_body}${line}${lf}"
   # else
   # fi
+
+  >&2 echo "add_line: $line"
+
 }
 
 function generate_http_response_body {
+  >&2 echo "Starting generate_http_response_body"
+
   # Metrics for all/any OS
   ping_metrics
+
+  >&2 echo "Checking OS"
 
   if [ "$OS" == "Darwin" ]; then
     darwin
@@ -238,9 +255,14 @@ function generate_http_response_body {
     echo "Unsupported OS: $OS"
     exit 1
   fi
+  >&2 echo "End of generate_http_response_body"
 }
 
 function run_handler {
+  if [ -n "$log_handler" ]; then
+    exec 2>/usr/local/var/log/node_exporter_shell_handler.log
+  fi
+
   # >&2 echo "Handler mode"
   CR=$(echo -en '\r')
 

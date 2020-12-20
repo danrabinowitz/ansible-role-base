@@ -8,7 +8,7 @@
     <array>
       <string>sh</string>
       <string>-c</string>
-      <string>arch -x86_64 /usr/local/opt/node_exporter/bin/node_exporter $(&lt; /usr/local/etc/node_exporter.args)</string>
+      <string>{{ apple_rosetta_cmd }}/usr/local/opt/node_exporter/bin/node_exporter $(&lt; /usr/local/etc/node_exporter.args)</string>
     </array>
     <key>RunAtLoad</key>
     <true/>

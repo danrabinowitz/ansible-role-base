@@ -78,3 +78,17 @@
 - name: Print ansible_architecture
   ansible.builtin.debug:
     var: ansible_architecture
+  tags:
+    - always
+
+- name: "setup : apple rosetta"
+  set_fact:
+     apple_rosetta_cmd: "{{ 'arch -x86_64 ' if ansible_os_family == 'Darwin' and ansible_architecture == 'arm64' else '' }}"
+  tags:
+    - always
+
+- name: Print apple_rosetta_cmd
+  ansible.builtin.debug:
+    var: apple_rosetta_cmd
+  tags:
+    - always
