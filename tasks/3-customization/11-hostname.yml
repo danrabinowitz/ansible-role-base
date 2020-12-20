@@ -4,6 +4,20 @@
   check_mode: no
   changed_when: false
 
+- name: "Set first name"
+  set_fact:
+     custom_user_first_name: "{{  custom_user_full_name.split(\" \")[0] }}"
+
+- name: "Set custom_hostname"
+  set_fact:
+     custom_hostname: "{{  custom_user_first_name }}'s Computer"
+  when: custom_hostname is not defined
+
+- name: "Set custom_hostname_restricted_chars"
+  set_fact:
+     custom_hostname_restricted_chars: "{{  custom_user_first_name }}Computer"
+  when: custom_hostname_restricted_chars is not defined
+
 - name: Set hostname
   shell: scutil --set ComputerName "{{ custom_hostname }}" && scutil --set LocalHostName "{{ custom_hostname_restricted_chars }}" && scutil --set HostName "{{ custom_hostname_restricted_chars }}"
   when: custom_hostname is defined and hostname_reg.stdout != custom_hostname_restricted_chars

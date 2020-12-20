@@ -1,35 +1,35 @@
-- name: Add custom user
-  user:
-    name: "{{ custom_username }}"
-    state: present
-    createhome: yes
-  register: add_custom_user_reg
+# - name: Add custom user
+#   user:
+#     name: "{{ custom_username }}"
+#     state: present
+#     createhome: yes
+#   register: add_custom_user_reg
 
-- name: Get user password
-  pause:
-    prompt: Enter the password for the newly-created user {{ custom_username }}
-    echo: no
-  register: custom_user_pw
-  no_log: true
-  when: add_custom_user_reg.changed
-
-- name: Update custom user
-  user:
-    name: "{{ custom_username }}"
-    password: "{{ custom_user_pw.user_input }}"
-    shell: /bin/zsh
-    state: present
-    # createhome: yes
-    # groups: wheel
-    # append: yes
-  when: add_custom_user_reg.changed
-
-# - name: Require password reset
-#   command: pwpolicy -u "{{ custom_username }}" -setpolicy "newPasswordRequired=1"
+# - name: Get user password
+#   pause:
+#     prompt: Enter the password for the newly-created user {{ custom_username }}
+#     echo: no
+#   register: custom_user_pw
+#   no_log: true
 #   when: add_custom_user_reg.changed
-- name: Set Real Name
-  command: dscl . create /Users/{{ custom_username }} RealName "{{ custom_user_full_name }}"
-  when: add_custom_user_reg.changed and custom_user_full_name is defined
+
+# - name: Update custom user
+#   user:
+#     name: "{{ custom_username }}"
+#     password: "{{ custom_user_pw.user_input }}"
+#     shell: /bin/zsh
+#     state: present
+#     # createhome: yes
+#     # groups: wheel
+#     # append: yes
+#   when: add_custom_user_reg.changed
+
+# # - name: Require password reset
+# #   command: pwpolicy -u "{{ custom_username }}" -setpolicy "newPasswordRequired=1"
+# #   when: add_custom_user_reg.changed
+# - name: Set Real Name
+#   command: dscl . create /Users/{{ custom_username }} RealName "{{ custom_user_full_name }}"
+#   when: add_custom_user_reg.changed and custom_user_full_name is defined
 
 # sudo defaults write /Library/Preferences/com.apple.loginwindow SHOWOTHERUSERS_MANAGED -bool FALSE
 - community.general.osx_defaults:
@@ -96,23 +96,23 @@
 
 
 # custom_admin_user
-- name: Add custom ADMIN user
-  user:
-    name: "{{ custom_admin_user }}"
-    state: present
-    createhome: yes
-  register: add_custom_admin_user_reg
-  when: custom_admin_user is defined
-- name: Update custom ADMIN user
-  user:
-    name: "{{ custom_admin_user }}"
-    password: "{{ custom_user_pw }}{{ custom_user_pw }}"
-    shell: /bin/zsh
-    state: present
-    # createhome: yes
-    # groups: wheel
-    # append: yes
-  when: add_custom_admin_user_reg.changed
+# - name: Add custom ADMIN user
+#   user:
+#     name: "{{ custom_admin_user }}"
+#     state: present
+#     createhome: yes
+#   register: add_custom_admin_user_reg
+#   when: custom_admin_user is defined
+# - name: Update custom ADMIN user
+#   user:
+#     name: "{{ custom_admin_user }}"
+#     password: "{{ custom_user_pw }}{{ custom_user_pw }}"
+#     shell: /bin/zsh
+#     state: present
+#     # createhome: yes
+#     # groups: wheel
+#     # append: yes
+#   when: add_custom_admin_user_reg.changed
 
 - name: Check if user is hidden
   shell: dscl . read /Users/{{ custom_admin_user }} IsHidden | awk '{print $2}'

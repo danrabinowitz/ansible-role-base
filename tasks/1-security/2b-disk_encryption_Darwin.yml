@@ -15,10 +15,10 @@
     # verbosity: "1"
   check_mode: no
 
-- name: Enable disk encryption
-  # -forceatlogin
-  command: fdesetup enable -user {{ admin_username }} -defer /root/fde_recoverykey.plist
-  when: not fdesetup_bool
+# - name: Enable disk encryption
+#   # -forceatlogin
+#   command: fdesetup enable -user {{ admin_username }} -defer /root/fde_recoverykey.plist
+#   when: not fdesetup_bool
 
 # - name: Log out the user
 #   # shell: osascript -e 'tell application "System Events" to log out'

@@ -74,3 +74,7 @@
      wheel_group: "{{ 'root' if ansible_os_family == 'Darwin' else 'wheel' }}"
   tags:
     - always
+
+- name: Print ansible_architecture
+  ansible.builtin.debug:
+    var: ansible_architecture
