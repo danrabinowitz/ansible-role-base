@@ -12,6 +12,10 @@ set -o pipefail
 ################################################################################
 # Init
 ################################################################################
+function finish_handler {
+  rm -rf "$tmp_dir"
+}
+
 function configure {
   if [ -z "${SOCAT_SOCKPORT:-}" ]; then
     mode="server"
@@ -27,10 +31,13 @@ function configure {
     fi
 
     OS=$(uname)
+    # Anything other than "" will cause the handler to log
+    log_handler=""
+
+    PING_TIMEOUT_SECONDS=2
+
   fi
 
-  # Anything other than "" will cause the handler to log
-  log_handler=""
 }
 
 function init {
@@ -65,33 +72,57 @@ function time_machine {
 
   local enabled
   enabled=$(/usr/bin/defaults read /Library/Preferences/com.apple.TimeMachine AutoBackup 2>/dev/null || true)
-  [ "$enabled" == "1" ] || enabled="0"
+  [ "$enabled" = "1" ] || enabled="0"
   add_line "time_machine_enabled ${enabled}"
 
-  if [ "$enabled" == "1" ];then
+  if false; then
+    >&2 echo "time_machine: Enabled"
+
     # TODO: Get all destinations, and get a descriptive name for each
     local rc
     i=0
     while true; do
+      >&2 echo "time_machine: while loop: i=${i}"
+
       set +e
-      /usr/libexec/PlistBuddy -c "Print Destinations:$i" /Library/Preferences/com.apple.TimeMachine.plist > /dev/null 2>&1
+      # /usr/libexec/PlistBuddy -c "Print Destinations:$i" /Library/Preferences/com.apple.TimeMachine.plist > /dev/null 2>&1
+      # /usr/libexec/PlistBuddy -c "Print Destinations:$i" /Library/Preferences/com.apple.TimeMachine.plist 2>&1
+      # /usr/libexec/PlistBuddy -c "Print Destinations:$i" /Library/Preferences/com.apple.TimeMachine.plist > /tmp/log1.djr 2>&1
+      /usr/local/sbin/time-machine-plist-reader "Destinations:$i" > /tmp/log1.djr 2>&1
       rc=$?
       set -e
       if [ $rc -ne 0 ]; then
+        >&2 echo "time_machine: Error getting destination for i=${i} with rc=${rc}"
+
+        local output
+        output=$(/usr/local/sbin/time-machine-plist-reader "Destinations:$i" 2>&1 || true)
+        # output=$(/usr/libexec/PlistBuddy -c "Print Destinations:$i" /Library/Preferences/com.apple.TimeMachine.plist 2>&1 || true)
+
+        # TODO: Look for the following message format and return a different exit code:
+        # Print: Entry, "Destinations:99", Does Not Exist
+
+
+        >&2 echo "output from PlistBuddy trying to read destination $i from /Library/Preferences/com.apple.TimeMachine.plist is:"
+        >&2 echo "$output"
+
+        >&2 echo "One possible cause could be that this script is lacking Full Disk Access which is required for accessing Time Machine data"
+        >&2 echo "  To grant Full Disk Access, open System Preferences > Security & Privacy > Privacy > Full Disk Access, and "
+        >&2 id
+        >&2 whoami
         break
       fi
       # We have an ith destination
       # Get the alias folder name
-      len_hex=$(/usr/libexec/PlistBuddy -c "Print Destinations:${i}:BackupAlias" /Library/Preferences/com.apple.TimeMachine.plist | head -c11 | tail -c1 | xxd -ps)
+      len_hex=$(/usr/local/sbin/time-machine-plist-reader "Destinations:${i}:BackupAlias" | head -c11 | tail -c1 | xxd -ps)
       len=$((16#$len_hex))
-      folder_name=$(/usr/libexec/PlistBuddy -c "Print Destinations:${i}:BackupAlias" /Library/Preferences/com.apple.TimeMachine.plist | head -c$((11+len)) | tail -c"$len")
+      folder_name=$(/usr/local/sbin/time-machine-plist-reader "Destinations:${i}:BackupAlias" | head -c$((11+len)) | tail -c"$len")
       >&2 echo "folder_name=$folder_name"
 
 
       # Get the last property of the BackupAlias, which is formatted like this:
       # afp://user@host._afpovertcp._tcp.local./Time%20Machine%20Folder
       set +e
-      full_name1=$(/usr/libexec/PlistBuddy -c "Print Destinations:${i}:BackupAlias" /Library/Preferences/com.apple.TimeMachine.plist | LANG=C LC_ALL=C sed 's/[^[:print:]\r\t]/ /g' | rev | awk '{print $1}' | rev)
+      full_name1=$(/usr/local/sbin/time-machine-plist-reader "Destinations:${i}:BackupAlias" | LANG=C LC_ALL=C sed 's/[^[:print:]\r\t]/ /g' | rev | awk '{print $1}' | rev)
       rc=$?
       set -e
       if [ $rc -ne 0 ]; then
@@ -124,7 +155,7 @@ function time_machine {
       path=$(urldecode "$path")
 
       local destination_id
-      destination_id=$(/usr/libexec/PlistBuddy -c "Print Destinations:${i}:DestinationID" /Library/Preferences/com.apple.TimeMachine.plist)
+      destination_id=$(/usr/local/sbin/time-machine-plist-reader "Destinations:${i}:DestinationID")
 
 
       local labels
@@ -132,19 +163,19 @@ function time_machine {
 
 
       local result
-      result=$(/usr/libexec/PlistBuddy -c "Print Destinations:${i}:RESULT" /Library/Preferences/com.apple.TimeMachine.plist)
+      result=$(/usr/local/sbin/time-machine-plist-reader "Destinations:${i}:RESULT")
       add_line "time_machine_result{${labels}} ${result}"
 
       local bytes_used
-      bytes_used=$(/usr/libexec/PlistBuddy -c "Print Destinations:${i}:BytesUsed" /Library/Preferences/com.apple.TimeMachine.plist)
+      bytes_used=$(/usr/local/sbin/time-machine-plist-reader "Destinations:${i}:BytesUsed")
       add_line "time_machine_bytes_used{${labels}} ${bytes_used}"
 
       local consistency_scan_at
-      consistency_scan_at=$(date -j -f "%a %b %d %T %Z %Y" "$(/usr/libexec/PlistBuddy -c "Print Destinations:${i}:ConsistencyScanDate" /Library/Preferences/com.apple.TimeMachine.plist )" "+%s")
+      consistency_scan_at=$(date -j -f "%a %b %d %T %Z %Y" "$(/usr/local/sbin/time-machine-plist-reader "Destinations:${i}:ConsistencyScanDate" )" "+%s")
       add_line "time_machine_consistency_scan_at{${labels}} ${consistency_scan_at}"
 
       local last_known_encryption_state
-      last_known_encryption_state=$(/usr/libexec/PlistBuddy -c "Print Destinations:${i}:LastKnownEncryptionState" /Library/Preferences/com.apple.TimeMachine.plist)
+      last_known_encryption_state=$(/usr/local/sbin/time-machine-plist-reader "Destinations:${i}:LastKnownEncryptionState")
       if [ "$last_known_encryption_state" = "Encrypted" ]; then
         last_known_encryption_state=1
       else
@@ -153,15 +184,15 @@ function time_machine {
       add_line "time_machine_last_known_encryption_state{${labels}} ${last_known_encryption_state}"
 
       local bytes_available
-      bytes_available=$(/usr/libexec/PlistBuddy -c "Print Destinations:${i}:BytesAvailable" /Library/Preferences/com.apple.TimeMachine.plist)
+      bytes_available=$(/usr/local/sbin/time-machine-plist-reader "Destinations:${i}:BytesAvailable")
       add_line "time_machine_bytes_available{${labels}} ${bytes_available}"
 
       local reference_local_snapshot_at
-      reference_local_snapshot_at=$(date -j -f "%a %b %d %T %Z %Y" "$(/usr/libexec/PlistBuddy -c "Print Destinations:${i}:ReferenceLocalSnapshotDate" /Library/Preferences/com.apple.TimeMachine.plist )" "+%s")
+      reference_local_snapshot_at=$(date -j -f "%a %b %d %T %Z %Y" "$(/usr/local/sbin/time-machine-plist-reader "Destinations:${i}:ReferenceLocalSnapshotDate" )" "+%s")
       add_line "time_machine_reference_local_snapshot_at{${labels}} ${reference_local_snapshot_at}"
 
       local lastBackupTimestamp
-      lastBackupTimestamp=$(date -j -f "%a %b %d %T %Z %Y" "$(/usr/libexec/PlistBuddy -c "Print Destinations:${i}:SnapshotDates" /Library/Preferences/com.apple.TimeMachine.plist | tail -n 2 | head -n 1 | awk '{$1=$1};1')" "+%s")
+      lastBackupTimestamp=$(date -j -f "%a %b %d %T %Z %Y" "$(/usr/local/sbin/time-machine-plist-reader "Destinations:${i}:SnapshotDates" | tail -n 2 | head -n 1 | awk '{$1=$1};1')" "+%s")
       add_line "time_machine_lastBackupTimestamp{${labels}} ${lastBackupTimestamp}"
 
       i=$((i + 1))
@@ -171,7 +202,6 @@ function time_machine {
 
 function ping_metrics {
   # ping_*
-  # It is quite slow. We should look into parallelizing this.
   # Set PING_HOSTS in the config file or as an env var, like this.
   # PING_HOSTS=("foo.internal.bar.com" "my-vpn-gateway:192.168.1.1")
   skip=0
@@ -180,17 +210,38 @@ function ping_metrics {
   set -u
 
   if [ $skip -ne 1 ]; then
+    mkdir -p "${tmp_dir}/ping"
+
+    declare -a process_ids
+    local i
+    i=0
+    for raw_host in "${PING_HOSTS[@]:-${empty_array[@]}}"; do
+      # hostname is what we actually ping
+      hostname=$(echo "$raw_host" | cut -d: -f2)
+      # >&2 echo "Running ping on $hostname"
+
+      # Run ping in the background
+      (ping -n -q -t "$PING_TIMEOUT_SECONDS" -c 1 "$hostname" | grep -E '(rtt|round-trip) ' | sed -E 's/^.+ = ([[:digit:]\.]+)\/.+$/\1/' > "${tmp_dir}/ping/${i}") &
+      process_id=$!
+      # >&2 echo "pid for $hostname is $process_id"
+      process_ids+=("$process_id")
+
+      i=$((i + 1))
+    done
+
+    for process_id in "${process_ids[@]}"; do
+      # >&2 echo "Waiting for pid=$process_id"
+      wait "$process_id" || true
+    done
+
+    # >&2 echo "All pings complete"
+    i=0
     for raw_host in "${PING_HOSTS[@]:-${empty_array[@]}}"; do
       # host is the descriptive name that prometheus uses
       host=$(echo "$raw_host" | cut -d: -f1)
-      # hostname is what we actually ping
-      hostname=$(echo "$raw_host" | cut -d: -f2)
-
       host_for_metrics=$(echo "$host" | sed 's/[\.-]/_/g')
-
-      set +e
-      time_ms=$(ping -n -q -c 1 "$hostname" | grep -E '(rtt|round-trip) ' | sed -E 's/^.+ = ([[:digit:]\.]+)\/.+$/\1/')
-      set -e
+      # time_ms="${ping_times[$i]}"
+      time_ms=$(cat "${tmp_dir}/ping/${i}")
 
       if [ -n "$time_ms" ]; then
         ping_success=1
@@ -199,10 +250,15 @@ function ping_metrics {
         time_ms=-1
       fi
       add_line "ping_success_${host_for_metrics} ${ping_success}"
-      # http_response_body="${line}${lf}"
-
       add_line "ping_time_${host_for_metrics}_ms ${time_ms}"
+
+      echo "${ping_success}" > /var/lib/node_exporter/textfile_collector/"$host_for_metrics".ping_success
+
+      # >&2 echo "${host_for_metrics}: ping_success=${ping_success} and time_ms=${time_ms} according to i=$i"
+
+      i=$((i + 1))
     done
+    rm -rf "${tmp_dir}/ping"
   fi
 }
 
@@ -210,11 +266,11 @@ function ping_metrics {
 # OS
 ################################################################################
 function darwin {
-  >&2 echo "Start of darwin"
+  # >&2 echo "Start of darwin"
   hid_idle_time
-  >&2 echo "After hid"
-  time_machine
-  >&2 echo "End of darwin"
+  # >&2 echo "After hid"
+  # time_machine
+  # >&2 echo "End of darwin"
 }
 
 function linux {
@@ -235,35 +291,39 @@ function add_line {
   # else
   # fi
 
-  >&2 echo "add_line: $line"
+  # >&2 echo "add_line: $line"
 
 }
 
 function generate_http_response_body {
-  >&2 echo "Starting generate_http_response_body"
+  # >&2 echo "Starting generate_http_response_body"
 
   # Metrics for all/any OS
   ping_metrics
 
-  >&2 echo "Checking OS"
+  # >&2 echo "Checking OS"
 
-  if [ "$OS" == "Darwin" ]; then
+  if [ "$OS" = "Darwin" ]; then
     darwin
-  elif [ "$OS" == "Linux" ]; then
+  elif [ "$OS" = "Linux" ]; then
     linux
   else
     echo "Unsupported OS: $OS"
     exit 1
   fi
-  >&2 echo "End of generate_http_response_body"
+  # >&2 echo "End of generate_http_response_body"
 }
 
 function run_handler {
+  trap finish_handler EXIT
+
   if [ -n "$log_handler" ]; then
     exec 2>/usr/local/var/log/node_exporter_shell_handler.log
   fi
-
   # >&2 echo "Handler mode"
+
+  tmp_dir=$(mktemp -d -t node-exporter-bash-XXXXXXXX)
+
   CR=$(echo -en '\r')
 
   http_request_method=""
@@ -340,7 +400,7 @@ function run_handler {
   >&2 echo "HTTP Request received: url=${http_request_url} parsed into host=${host}, port=${port}, and path=${path}"
 
   if [ "$http_request_method" = "GET" ] && [ "$path" = "/metrics" ]; then
-    >&2 echo "serving metrics"
+    # >&2 echo "serving metrics"
 
     http_response_body=""
     generate_http_response_body
