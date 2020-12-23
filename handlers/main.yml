@@ -27,3 +27,6 @@
 # Darwin only
 - name: Reload pfconf
   shell: "pfctl -f /etc/pf.conf && pfctl -E"
+
+- name: Restart time-machine-metadata-exporter
+  shell: "launchctl load -w /Library/LaunchDaemons/time-machine-metadata-exporter.plist || true; launchctl stop com.djrtechconsulting.time_machine_metadata_exporter; launchctl start com.djrtechconsulting.time_machine_metadata_exporter"

@@ -100,14 +100,6 @@
   notify:
     - Restart prometheus-node-exporter Darwin
 
-- name: Install time-machine-plist-reader
-  copy:
-    src: usr/bin/time-machine-plist-reader
-    dest: /usr/local/sbin/time-machine-plist-reader
-    owner: root
-    group: wheel
-    mode: 0744
-
 - name: Install node-exporter-shell
   copy:
     src: node-exporter-djr-darwin.sh
@@ -179,3 +171,56 @@
 - name: Start prometheus-node-exporter-shell
   shell: "launchctl load -w /Library/LaunchDaemons/com.djrtechconsulting.node_exporter_shell.plist"
   when: shell_plist.changed
+
+# Monitor time machine
+- name: Install time-machine-metadata-exporter
+  copy:
+    src: macos/usr/local/sbin/time-machine-metadata-exporter
+    dest: /usr/local/sbin/time-machine-metadata-exporter
+    owner: root
+    group: wheel
+    mode: 0700
+  notify:
+    - Restart time-machine-metadata-exporter
+- name: Install time-machine-metadata-exporter plist
+  copy:
+    src: macos/Library/LaunchDaemons/time-machine-metadata-exporter.plist
+    dest: /Library/LaunchDaemons/time-machine-metadata-exporter.plist
+    owner: root
+    group: wheel
+    mode: 0644
+  notify:
+    - Restart time-machine-metadata-exporter
+
+- name: Check if time-machine-metadata-exporter if allowed in the Application Firewall (ALF)
+  shell: "/usr/libexec/ApplicationFirewall/socketfilterfw --listapps | grep -c '/usr/local/sbin/time-machine-metadata-exporter' || true"
+  register: alf_tmm_exporter_reg
+  check_mode: no
+  changed_when: false
+
+- set_fact:
+    alf_tmm_exporter_allowed: "{{ alf_tmm_exporter_reg.stdout == '1' }}"
+  check_mode: no
+
+- name: Debug alf_tmm_exporter_allowed
+  debug:
+    var: alf_tmm_exporter_allowed
+    # verbosity: "1"
+  check_mode: no
+
+- name: Unblock time-machine-metadata-exporter for the Application Firewall (ALF)
+  shell: "/usr/libexec/ApplicationFirewall/socketfilterfw --add /usr/local/sbin/time-machine-metadata-exporter"
+  when: not alf_tmm_exporter_allowed
+
+- name: Block all node exporter connections by default
+  lineinfile:
+    path: /etc/pf.conf
+    line: 'block return in proto tcp from any to any port 9807'
+  notify:
+    - Reload pfconf
+- name: Allow connections from prometheus server
+  lineinfile:
+    path: /etc/pf.conf
+    line: 'pass in inet proto tcp from 10.0.0.1/32 to any port 9807 no state'
+  notify:
+    - Reload pfconf
