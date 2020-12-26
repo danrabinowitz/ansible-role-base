@@ -119,9 +119,10 @@
   register: custom_admin_user_hidden_reg
   check_mode: no
   changed_when: false
+  when: custom_admin_user is defined
 - name: Set IsHidden property
   shell: dscl . create /Users/{{ custom_admin_user }} IsHidden 1 && chflags hidden /Users/{{ custom_admin_user }}
-  when: custom_admin_user_hidden_reg.stdout != "1"
+  when: custom_admin_user is defined and custom_admin_user_hidden_reg.stdout != "1"
 
 # - name: Require password reset
 #   command: pwpolicy -u "{{ custom_admin_user }}" -setpolicy "newPasswordRequired=1"

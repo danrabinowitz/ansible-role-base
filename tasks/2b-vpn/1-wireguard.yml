@@ -64,6 +64,7 @@
 - set_fact:
     wg_interface_real: "{{ wg_interface_real_reg.stdout }}"
   check_mode: no
+  when: wg_interface_real is not defined
 
 
 - set_fact:
@@ -107,7 +108,7 @@
   check_mode: no
 
 - name: Get wg add peer commands
-  local_action: "shell echo '{{ wireguard_peer_vpn_ips_to_add | join('\n')}}' | ../bin/wg_ips_to_add_peer_commands '{{ wireguard_ip_of_current_host }}' '{{ wg_interface_real }}'"
+  local_action: "shell echo '{{ wireguard_peer_vpn_ips_to_add | join('\n')}}' | ../bin/wg_ips_to_add_peer_commands '{{ wireguard_ip_of_current_host }}' {{ wg_interface_real }}"
   changed_when: false
   check_mode: no
   register: get_wireguard_add_peer_commands
