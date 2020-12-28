@@ -107,8 +107,8 @@
     owner: root
     group: wheel
     mode: 0755
-  tags:
-    - wip
+  # tags:
+  #   - wip
 
 - name: Create launchd plist for node-exporter-shell
   copy:
