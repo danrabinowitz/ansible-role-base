@@ -1,3 +1,11 @@
+- name: "Security : Upgrade  : Install ufw if needed"
+  apt:
+    name: ['ufw']
+    state: present
+    update_cache: yes
+    install_recommends: no
+    force_apt_get: yes
+
 - name: "Security : Firewall: Allow wireguard traffic"
   ufw:
     rule: allow
