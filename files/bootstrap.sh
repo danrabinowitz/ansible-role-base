@@ -14,15 +14,32 @@ set -o pipefail
 
 ################################################################################
 # Define variable names
-set +u
-userdata_wireguard_address="$userdata_wireguard_address"
-userdata_admin_username="$userdata_admin_username"
-wg_addr="$wg_addr"
-set -u
+userdata_wireguard_address="${userdata_wireguard_address:-}"
+userdata_admin_username="${userdata_admin_username:-}"
+wg_addr="${wg_addr:-}"
 ################################################################################
-
-function display_steps {
+# PLATFORM
+function get_platform() {
   if [ "$(uname -s)" = "Darwin" ]; then
+    echo "MacOS"
+    return
+  fi
+  if [ -r '/etc/issue.net' ]; then
+    local issue1
+    issue1=$(cut -d' ' -f1 /etc/issue.net)
+    if [ "$issue1" = "Raspbian" ] || [ "$issue1" = "Ubuntu" ]; then
+      echo "$issue1"
+      return
+    fi
+    return
+  fi
+  echo "UNKNOWN"
+}
+
+platform=$(get_platform)
+################################################################################
+function display_steps {
+  if [ "$platform" = "MacOS" ]; then
     echo "To bootstrap a mac:"
     echo "1) Install macOS"
     echo "   -> While macOS is installing, allocate an ip address for the new machine"
@@ -77,7 +94,7 @@ if [ $EUID != 0 ]; then
 fi
 ################################################################################
 echo "Checking for home directory for ${userdata_admin_username}..."
-if [ "$(uname -s)" = "Darwin" ]; then
+if [ "$platform" = "MacOS" ]; then
   home="/Users/${userdata_admin_username}"
 else
   home="/home/${userdata_admin_username}"
@@ -99,7 +116,7 @@ chown "$userdata_admin_username" "${home}/.ssh/authorized_keys"
 chmod 600 "${home}/.ssh/authorized_keys"
 
 echo "Installing wireguard..."
-if [ "$(uname -s)" = "Darwin" ]; then
+if [ "$platform" = "MacOS" ]; then
   echo "TODO: Explore installing wireguard-go on macOS without requiring homebrew."
   # /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
   curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh > /tmp/brew-install.sh
@@ -109,6 +126,10 @@ if [ "$(uname -s)" = "Darwin" ]; then
   wg_dir="/usr/local/etc/wireguard"
   interface="utun0"
 else
+  if [ "$platform" = "Raspbian" ]; then
+    echo "ufw is required, but not installed by default on Raspbian."
+    apt install --yes ufw
+  fi
   # Next two lines are needed only if ubuntu <= 19.04
   # add-apt-repository --yes ppa:wireguard/wireguard
   # apt-get update
@@ -137,7 +158,7 @@ PublicKey = pz/hyQ8EKY7nSoaCFAgd7SIl3SFDnrb02CT32VksTg8=
 AllowedIPs = 192.168.192.1
 EOF
 
-if [ "$(uname -s)" = "Darwin" ]; then
+if [ "$platform" = "MacOS" ]; then
   echo "Sharing public key on wg port. Run this command to get it:"
 
   ip=$(ifconfig -au inet | grep inet | grep -v 127.0.0.1 | awk '{print $2}' | head -1)
