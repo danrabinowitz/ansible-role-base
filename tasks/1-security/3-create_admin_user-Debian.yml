@@ -58,4 +58,4 @@
     group: "{{ admin_username }}"
     mode: 0400
     force: no
-  when: not ansible_check_mode and not skip_google_authenticator
+  when: not ansible_check_mode and not skip_google_authenticator and (google_authenticator_grace_period is defined)
