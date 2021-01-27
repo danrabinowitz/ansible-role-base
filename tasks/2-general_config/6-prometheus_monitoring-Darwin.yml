@@ -102,7 +102,7 @@
 
 - name: Install node-exporter-shell
   copy:
-    src: node-exporter-djr-darwin.sh
+    src: node-exporter-shell.sh
     dest: /usr/local/sbin/node-exporter-shell
     owner: root
     group: wheel

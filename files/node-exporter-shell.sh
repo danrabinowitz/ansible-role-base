@@ -50,7 +50,7 @@ function init {
 ################################################################################
 function run_server {
   echo "Listening on TCP port ${PORT}"
-  /usr/local/bin/socat TCP4-LISTEN:"$PORT",reuseaddr,fork SYSTEM:"$this_script"
+  socat TCP4-LISTEN:"$PORT",reuseaddr,fork SYSTEM:"$this_script"
   echo "socat listener exited"
   exit 1
 }
@@ -66,148 +66,27 @@ function hid_idle_time {
   add_line "hid_idle_time ${hid_idle_time}"
 }
 
-function time_machine {
-  # time_machine_*
-  >&2 echo "Start of time_machine"
-
-  local enabled
-  enabled=$(/usr/bin/defaults read /Library/Preferences/com.apple.TimeMachine AutoBackup 2>/dev/null || true)
-  [ "$enabled" = "1" ] || enabled="0"
-  add_line "time_machine_enabled ${enabled}"
-
-  if false; then
-    >&2 echo "time_machine: Enabled"
-
-    # TODO: Get all destinations, and get a descriptive name for each
-    local rc
-    i=0
-    while true; do
-      >&2 echo "time_machine: while loop: i=${i}"
-
-      set +e
-      # /usr/libexec/PlistBuddy -c "Print Destinations:$i" /Library/Preferences/com.apple.TimeMachine.plist > /dev/null 2>&1
-      # /usr/libexec/PlistBuddy -c "Print Destinations:$i" /Library/Preferences/com.apple.TimeMachine.plist 2>&1
-      # /usr/libexec/PlistBuddy -c "Print Destinations:$i" /Library/Preferences/com.apple.TimeMachine.plist > /tmp/log1.djr 2>&1
-      /usr/local/sbin/time-machine-plist-reader "Destinations:$i" > /tmp/log1.djr 2>&1
-      rc=$?
-      set -e
-      if [ $rc -ne 0 ]; then
-        >&2 echo "time_machine: Error getting destination for i=${i} with rc=${rc}"
-
-        local output
-        output=$(/usr/local/sbin/time-machine-plist-reader "Destinations:$i" 2>&1 || true)
-        # output=$(/usr/libexec/PlistBuddy -c "Print Destinations:$i" /Library/Preferences/com.apple.TimeMachine.plist 2>&1 || true)
-
-        # TODO: Look for the following message format and return a different exit code:
-        # Print: Entry, "Destinations:99", Does Not Exist
-
-
-        >&2 echo "output from PlistBuddy trying to read destination $i from /Library/Preferences/com.apple.TimeMachine.plist is:"
-        >&2 echo "$output"
-
-        >&2 echo "One possible cause could be that this script is lacking Full Disk Access which is required for accessing Time Machine data"
-        >&2 echo "  To grant Full Disk Access, open System Preferences > Security & Privacy > Privacy > Full Disk Access, and "
-        >&2 id
-        >&2 whoami
-        break
-      fi
-      # We have an ith destination
-      # Get the alias folder name
-      len_hex=$(/usr/local/sbin/time-machine-plist-reader "Destinations:${i}:BackupAlias" | head -c11 | tail -c1 | xxd -ps)
-      len=$((16#$len_hex))
-      folder_name=$(/usr/local/sbin/time-machine-plist-reader "Destinations:${i}:BackupAlias" | head -c$((11+len)) | tail -c"$len")
-      >&2 echo "folder_name=$folder_name"
-
-
-      # Get the last property of the BackupAlias, which is formatted like this:
-      # afp://user@host._afpovertcp._tcp.local./Time%20Machine%20Folder
-      set +e
-      full_name1=$(/usr/local/sbin/time-machine-plist-reader "Destinations:${i}:BackupAlias" | LANG=C LC_ALL=C sed 's/[^[:print:]\r\t]/ /g' | rev | awk '{print $1}' | rev)
-      rc=$?
-      set -e
-      if [ $rc -ne 0 ]; then
-        >&2 echo "Error getting full_name1 for i=$i"
-        i=$((i + 1))
-        continue
-      fi
-
-      length_byte_hex=$(echo -n "$full_name1" | head -c1 | xxd -ps)
-      length_byte=$((16#$length_byte_hex))
-      length=$((${#full_name1}-1))
-      if [ $length_byte -ne $length ]; then
-        >&2 echo "Error parsing BackupAlias for i=$i"
-        i=$((i + 1))
-        continue
-      fi
-
-      full_name2=$(echo -n "$full_name1" | tail -c"$length")
-      >&2 echo "$full_name2"
-      # Parse full_name2 to get host and path
-      local host
-      host=$(echo "$full_name2" | tr '@.' ' ' | cut -d' ' -f2)
-
-      local head_length
-      head_length=$(echo "$full_name2" | sed 's/\/\///' | tr / ' ' | cut -d' ' -f1 | awk '{print length+2}')
-      local tail_length
-      tail_length=$((${#full_name2}-head_length))
-      local path
-      path=$(echo -n "$full_name2" | tail -c"$tail_length")
-      path=$(urldecode "$path")
-
-      local destination_id
-      destination_id=$(/usr/local/sbin/time-machine-plist-reader "Destinations:${i}:DestinationID")
-
-
-      local labels
-      labels="backup_host=\"${host}\",backup_path=\"${path}\",destination_id=\"${destination_id}\""
-
-
-      local result
-      result=$(/usr/local/sbin/time-machine-plist-reader "Destinations:${i}:RESULT")
-      add_line "time_machine_result{${labels}} ${result}"
-
-      local bytes_used
-      bytes_used=$(/usr/local/sbin/time-machine-plist-reader "Destinations:${i}:BytesUsed")
-      add_line "time_machine_bytes_used{${labels}} ${bytes_used}"
-
-      local consistency_scan_at
-      consistency_scan_at=$(date -j -f "%a %b %d %T %Z %Y" "$(/usr/local/sbin/time-machine-plist-reader "Destinations:${i}:ConsistencyScanDate" )" "+%s")
-      add_line "time_machine_consistency_scan_at{${labels}} ${consistency_scan_at}"
-
-      local last_known_encryption_state
-      last_known_encryption_state=$(/usr/local/sbin/time-machine-plist-reader "Destinations:${i}:LastKnownEncryptionState")
-      if [ "$last_known_encryption_state" = "Encrypted" ]; then
-        last_known_encryption_state=1
-      else
-        last_known_encryption_state=0
-      fi
-      add_line "time_machine_last_known_encryption_state{${labels}} ${last_known_encryption_state}"
-
-      local bytes_available
-      bytes_available=$(/usr/local/sbin/time-machine-plist-reader "Destinations:${i}:BytesAvailable")
-      add_line "time_machine_bytes_available{${labels}} ${bytes_available}"
-
-      local reference_local_snapshot_at
-      reference_local_snapshot_at=$(date -j -f "%a %b %d %T %Z %Y" "$(/usr/local/sbin/time-machine-plist-reader "Destinations:${i}:ReferenceLocalSnapshotDate" )" "+%s")
-      add_line "time_machine_reference_local_snapshot_at{${labels}} ${reference_local_snapshot_at}"
-
-      local lastBackupTimestamp
-      lastBackupTimestamp=$(date -j -f "%a %b %d %T %Z %Y" "$(/usr/local/sbin/time-machine-plist-reader "Destinations:${i}:SnapshotDates" | tail -n 2 | head -n 1 | awk '{$1=$1};1')" "+%s")
-      add_line "time_machine_lastBackupTimestamp{${labels}} ${lastBackupTimestamp}"
-
-      i=$((i + 1))
-    done
-  fi
-}
-
 function ping_metrics {
   # ping_*
   # Set PING_HOSTS in the config file or as an env var, like this.
   # PING_HOSTS=("foo.internal.bar.com" "my-vpn-gateway:192.168.1.1")
   skip=0
-  set +u
-  [ ${#PING_HOSTS[@]:-0} -eq 0 ] && skip=1
-  set -u
+
+  # >&2 echo "Checking if PING_HOSTS is defined"
+  set +e
+  declare -p "PING_HOSTS" &>/dev/null
+  rc=$?
+  set -e
+
+  if [ $rc -ne 0 ]; then
+    # >&2 echo "PING_HOSTS is not set. Skipping."
+    skip=1
+  else
+    # >&2 echo "PING_HOSTS is set. If length is 0 then skip."
+    [ ${#PING_HOSTS[@]:-0} -eq 0 ] && skip=1
+  fi
+
+  # >&2 echo "PING_HOSTS: skip=${skip}"
 
   if [ $skip -ne 1 ]; then
     mkdir -p "${tmp_dir}/ping"
@@ -230,7 +109,7 @@ function ping_metrics {
     done
 
     for process_id in "${process_ids[@]}"; do
-      # >&2 echo "Waiting for pid=$process_id"
+      >&2 echo "ping_metrics: Waiting for pid=$process_id"
       wait "$process_id" || true
     done
 
@@ -252,13 +131,67 @@ function ping_metrics {
       add_line "ping_success_${host_for_metrics} ${ping_success}"
       add_line "ping_time_${host_for_metrics}_ms ${time_ms}"
 
+      set +e
       echo "${ping_success}" > /var/lib/node_exporter/textfile_collector/"$host_for_metrics".ping_success
+      set -e
 
       # >&2 echo "${host_for_metrics}: ping_success=${ping_success} and time_ms=${time_ms} according to i=$i"
 
       i=$((i + 1))
     done
     rm -rf "${tmp_dir}/ping"
+  fi
+}
+
+function custom_metrics_scripts {
+  # For each file
+  # NODE_EXPORTER_SHELL_METRICS_SCRIPT_DIRS=/usr/local/bin/node-exporter-shell/metrics-scripts
+  if [ -n "${NODE_EXPORTER_SHELL_METRICS_SCRIPT_DIRS:-}" ]; then
+    local local_tmp_dir
+    local_tmp_dir="${tmp_dir}/custom_metrics"
+    mkdir -p "$local_tmp_dir"
+
+    declare -a process_ids
+    local i
+    i=0
+
+    for dir in $NODE_EXPORTER_SHELL_METRICS_SCRIPT_DIRS; do
+      >&2 echo "Processing custom metrics scripts in $dir"
+      for file in "$dir"/*; do
+        >&2 echo "Processing file $file"
+        if [[ -x "$file" ]]; then
+          ("$file" > "${local_tmp_dir}/${i}") &
+          # process_ids+=($!)
+          process_id=$!
+          process_ids+=("$process_id")
+          i=$((i + 1))
+        fi
+      done
+    done
+
+    if [ $i -gt 0 ]; then
+      for process_id in "${process_ids[@]}"; do
+        >&2 echo "custom_metrics_scripts: Waiting for pid=$process_id"
+        wait "$process_id" || true
+      done
+    fi
+
+    # >&2 echo "All ${i} custom metrics scripts are complete"
+    local max
+    max=$i
+    local out1
+    for ((i=0;i<max;i++)); do
+        # >&2 echo "Reading from output file for i=${i}"
+        if [ -r "${local_tmp_dir}/${i}" ]; then
+          out1=$(<"${local_tmp_dir}/${i}")
+          # TODO: Be sure this handles multiple lines
+          add_line "$out1"
+        else
+          >&2 echo "Unable to read file for i=${i}"
+        fi
+    done
+
+    rm -rf "$local_tmp_dir"
   fi
 }
 
@@ -269,7 +202,6 @@ function darwin {
   # >&2 echo "Start of darwin"
   hid_idle_time
   # >&2 echo "After hid"
-  # time_machine
   # >&2 echo "End of darwin"
 }
 
@@ -305,12 +237,15 @@ function generate_http_response_body {
 
   if [ "$OS" = "Darwin" ]; then
     darwin
-  elif [ "$OS" = "Linux" ]; then
-    linux
-  else
-    echo "Unsupported OS: $OS"
-    exit 1
+  # elif [ "$OS" = "Linux" ]; then
+  #   linux
+  # else
+  #   echo "Unsupported OS: $OS"
+  #   exit 1
   fi
+
+  custom_metrics_scripts
+
   # >&2 echo "End of generate_http_response_body"
 }
 

@@ -1,0 +1,9 @@
+[Unit]
+Description=node-exporter-shell service
+
+[Service]
+ExecStart=/usr/local/sbin/node-exporter-shell
+Environment=NODE_EXPORTER_SHELL_METRICS_SCRIPT_DIRS=/usr/local/bin/node-exporter-shell/metrics-scripts
+
+[Install]
+WantedBy=multi-user.target
