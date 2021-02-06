@@ -34,6 +34,9 @@ function configure {
     # Anything other than "" will cause the handler to log
     log_handler=""
 
+    # CACHE_DIR="${CACHE_DIR:-/var/node-exporter-shell/cache}"
+    # mkdir -p "$CACHE_DIR"
+
     PING_TIMEOUT_SECONDS=2
 
   fi
