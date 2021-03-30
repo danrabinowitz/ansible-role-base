@@ -13,6 +13,7 @@ set -o pipefail
 # Init
 ################################################################################
 function finish_handler {
+  >&2 echo "finish_handler: Cleaning up"
   rm -rf "$tmp_dir"
 }
 
@@ -21,6 +22,7 @@ function configure {
     mode="server"
     PORT="${PORT:-9806}"
     this_script="${BASH_SOURCE[0]}"
+    socat_exe="${SOCAT:-socat}"
   else
     mode="handler"
 
@@ -52,9 +54,9 @@ function init {
 # Server
 ################################################################################
 function run_server {
-  echo "Listening on TCP port ${PORT}"
-  socat TCP4-LISTEN:"$PORT",reuseaddr,fork SYSTEM:"$this_script"
-  echo "socat listener exited"
+  >&2 echo "Listening on TCP port ${PORT}"
+  "$socat_exe" TCP4-LISTEN:"$PORT",reuseaddr,fork SYSTEM:"$this_script"
+  >&2 echo "socat listener exited"
   exit 1
 }
 
@@ -112,7 +114,7 @@ function ping_metrics {
     done
 
     for process_id in "${process_ids[@]}"; do
-      >&2 echo "ping_metrics: Waiting for pid=$process_id"
+      # >&2 echo "ping_metrics: Waiting for pid=$process_id"
       wait "$process_id" || true
     done
 
@@ -231,12 +233,12 @@ function add_line {
 }
 
 function generate_http_response_body {
-  # >&2 echo "Starting generate_http_response_body"
+  >&2 echo "Starting generate_http_response_body"
 
   # Metrics for all/any OS
   ping_metrics
 
-  # >&2 echo "Checking OS"
+  >&2 echo "Checking OS"
 
   if [ "$OS" = "Darwin" ]; then
     darwin
@@ -249,7 +251,7 @@ function generate_http_response_body {
 
   custom_metrics_scripts
 
-  # >&2 echo "End of generate_http_response_body"
+  >&2 echo "End of generate_http_response_body"
 }
 
 function run_handler {
@@ -258,7 +260,7 @@ function run_handler {
   if [ -n "$log_handler" ]; then
     exec 2>/usr/local/var/log/node_exporter_shell_handler.log
   fi
-  # >&2 echo "Handler mode"
+  >&2 echo "Handler mode"
 
   tmp_dir=$(mktemp -d -t node-exporter-bash-XXXXXXXX)
 
@@ -297,7 +299,7 @@ function run_handler {
     exit 0
   fi
 
-  # >&2 echo "Processing request..."
+  >&2 echo "Processing request..."
 
   # pattern='^(([[:alnum:]]+)://)?(([[:alnum:]]+)@)?([^:^@]+)(:([[:digit:]]+))?$'
   # pattern='(https?|ftp|file)://[-A-Za-z0-9\+&@#/%?=~_|!:,.;]*[-A-Za-z0-9\+&@#/%=~_|]'
@@ -338,7 +340,7 @@ function run_handler {
   >&2 echo "HTTP Request received: url=${http_request_url} parsed into host=${host}, port=${port}, and path=${path}"
 
   if [ "$http_request_method" = "GET" ] && [ "$path" = "/metrics" ]; then
-    # >&2 echo "serving metrics"
+    >&2 echo "serving metrics"
 
     http_response_body=""
     generate_http_response_body
