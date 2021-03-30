@@ -25,6 +25,7 @@
   lineinfile:
     path: /etc/pf.conf
     line: 'pass in inet proto tcp from 10.0.0.1/32 to any port 22 no state'
+  when: allow_ssh_from_utility | default(False)
   notify:
     - Reload pfconf
 
@@ -32,6 +33,7 @@
   lineinfile:
     path: /etc/pf.conf
     line: 'pass in inet proto tcp from 10.0.0.4/32 to any port 22 no state'
+  when: allow_ssh_from_devenv | default(False)
   notify:
     - Reload pfconf
 
@@ -39,6 +41,7 @@
   lineinfile:
     path: /etc/pf.conf
     line: 'pass in inet proto tcp from 10.0.0.6/32 to any port 22 no state'
+  when: allow_ssh_from_secure | default(False)
   notify:
     - Reload pfconf
 
@@ -46,6 +49,7 @@
   lineinfile:
     path: /etc/pf.conf
     line: 'pass in inet proto tcp from 10.0.0.9/32 to any port 22 no state'
+  when: allow_ssh_from_devenv | default(False)
   notify:
     - Reload pfconf
 
@@ -61,6 +65,7 @@
   lineinfile:
     path: /etc/pf.conf
     line: 'pass in inet proto tcp from 192.168.192.1/32 to any port 5900 no state'
+  when: allow_vnc_from_secure | default(False)
   notify:
     - Reload pfconf
 
