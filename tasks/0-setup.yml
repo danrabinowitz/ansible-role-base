@@ -92,3 +92,20 @@
     var: apple_rosetta_cmd
   tags:
     - always
+
+- name: "setup : homebrew prefix"
+  set_fact:
+     homebrew_prefix: "{{ '/opt/homebrew' if ansible_architecture == 'arm64' else '/usr/local' }}"
+  when: ansible_os_family == 'Darwin'
+  tags:
+    - always
+
+- name: Validate that brew is in the path
+  shell: brew --prefix
+  environment:
+    PATH: "{{ homebrew_prefix }}/bin:{{ homebrew_prefix }}/sbin:{{ ansible_env.PATH }}"
+  when: ansible_os_family == 'Darwin'
+  check_mode: no
+  changed_when: false
+  # tags:
+  #   - always

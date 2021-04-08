@@ -3,6 +3,8 @@
     name: node_exporter
     state: latest
     # update_homebrew: true
+  environment:
+    PATH: "{{ homebrew_prefix }}/bin:{{ homebrew_prefix }}/sbin:{{ ansible_env.PATH }}"
   become: true
   become_user: "{{ admin_username }}"
 
@@ -31,7 +33,9 @@
 
 
 - name: Get node_exporter path
-  shell: echo "$(/usr/local/bin/brew --cellar node_exporter)/$(/usr/local/bin/brew list --versions node_exporter | awk '{print $2}')/bin/node_exporter"
+  shell: echo "$(brew --cellar node_exporter)/$(brew list --versions node_exporter | awk '{print $2}')/bin/node_exporter"
+  environment:
+    PATH: "{{ homebrew_prefix }}/bin:{{ homebrew_prefix }}/sbin:{{ ansible_env.PATH }}"
   register: node_exporter_path_reg
   check_mode: no
   changed_when: false
@@ -122,7 +126,9 @@
     - wip
 
 - name: Get socat path
-  shell: echo "$(/usr/local/bin/brew --cellar socat)/$(/usr/local/bin/brew list --versions socat | awk '{print $2}')/bin/socat"
+  shell: echo "$(brew --cellar socat)/$(brew list --versions socat | awk '{print $2}')/bin/socat"
+  environment:
+    PATH: "{{ homebrew_prefix }}/bin:{{ homebrew_prefix }}/sbin:{{ ansible_env.PATH }}"
   register: socat_path_reg
   check_mode: no
   changed_when: false

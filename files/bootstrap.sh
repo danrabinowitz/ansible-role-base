@@ -17,7 +17,7 @@ set -o pipefail
 userdata_wireguard_address="${userdata_wireguard_address:-}"
 userdata_admin_username="${userdata_admin_username:-}"
 wg_addr="${wg_addr:-}"
-allow_ssh_from_provisioner="${allow_ssh_from_provisioner:-}"
+allow_ssh_from_provisioner="${allow_ssh_from_provisioner:-true}"
 ################################################################################
 # PLATFORM
 function get_platform() {
@@ -48,7 +48,7 @@ function display_steps {
     echo "3) Create an account which will be the admin account"
     echo "4) Open Terminal and run this script"
     echo "   curl -fsSL https://d2r.io/macos1 > run.sh"
-    echo "   allow_ssh_from_provisioner=true wg_addr=a.b.c.d bash run.sh"
+    echo "   wg_addr=a.b.c.d bash run.sh"
   else
     echo "Use cloud init"
   fi
@@ -57,7 +57,7 @@ function display_steps {
 function usage {
 
   # echo "userdata_admin_username=my-admin-user userdata_wireguard_address=a.b.c.d run.sh"
-  echo "USAGE: allow_ssh_from_provisioner=true wg_addr=a.b.c.d bash run.sh"
+  echo "USAGE: wg_addr=a.b.c.d bash run.sh"
   echo "-----"
   display_steps
   exit 1
@@ -137,7 +137,8 @@ if [ "$platform" = "MacOS" ]; then
   else
     brew_exe="/opt/homebrew/bin/brew"
   fi
-  echo 'eval "$('"$brew_exe"' shellenv)"' > "${HOME}/.zprofile"
+  echo 'eval "$('"$brew_exe"' shellenv)"' >> "${HOME}/.zprofile"
+  echo 'eval "$('"$brew_exe"' shellenv)"' >> "/var/root/.profile"
   eval "$(${brew_exe} shellenv)"
   su - "$userdata_admin_username" -c "brew install wireguard-tools socat"
   wg_dir="/usr/local/etc/wireguard"

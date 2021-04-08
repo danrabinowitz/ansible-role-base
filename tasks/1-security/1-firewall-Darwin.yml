@@ -85,9 +85,11 @@
 
 
 
-
+# TODO: I could probably just use which wireguard-go, right?
 - name: Get wireguard-go path
-  shell: echo "$(/usr/local/bin/brew --cellar wireguard-go)/$(/usr/local/bin/brew list --versions wireguard-go | awk '{print $2}')/bin/wireguard-go"
+  shell: echo "$(brew --cellar wireguard-go)/$(brew list --versions wireguard-go | awk '{print $2}')/bin/wireguard-go"
+  environment:
+    PATH: "{{ homebrew_prefix }}/bin:{{ homebrew_prefix }}/sbin:{{ ansible_env.PATH }}"
   register: wireguard_go_path_reg
   check_mode: no
   changed_when: false
