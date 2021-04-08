@@ -137,7 +137,9 @@ if [ "$platform" = "MacOS" ]; then
   else
     brew_exe="/opt/homebrew/bin/brew"
   fi
-  su - "$userdata_admin_username" -c "${brew_exe} install wireguard-tools socat"
+  echo 'eval "$('"$brew_exe"' shellenv)"' > "${HOME}/.zprofile"
+  eval "$(${brew_exe} shellenv)"
+  su - "$userdata_admin_username" -c "brew install wireguard-tools socat"
   wg_dir="/usr/local/etc/wireguard"
   interface="utun0"
 else
