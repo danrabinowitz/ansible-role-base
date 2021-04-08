@@ -131,7 +131,13 @@ if [ "$platform" = "MacOS" ]; then
   curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh > /tmp/brew-install.sh
   chmod 755 /tmp/brew-install.sh
   su - "$userdata_admin_username" -c "echo | /tmp/brew-install.sh"
-  su - "$userdata_admin_username" -c "/usr/local/bin/brew install wireguard-tools socat"
+  arch=$(arch)
+  if [ "$arch" = "i386" ]; then
+    brew_exe="/usr/local/bin/brew"
+  else
+    brew_exe="/opt/homebrew/bin/brew"
+  fi
+  su - "$userdata_admin_username" -c "${brew_exe} install wireguard-tools socat"
   wg_dir="/usr/local/etc/wireguard"
   interface="utun0"
 else
