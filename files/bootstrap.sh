@@ -17,6 +17,7 @@ set -o pipefail
 userdata_wireguard_address="${userdata_wireguard_address:-}"
 userdata_admin_username="${userdata_admin_username:-}"
 wg_addr="${wg_addr:-}"
+allow_ssh_from_provisioner="${allow_ssh_from_provisioner:-}"
 ################################################################################
 # PLATFORM
 function get_platform() {
@@ -56,7 +57,7 @@ function display_steps {
 function usage {
 
   # echo "userdata_admin_username=my-admin-user userdata_wireguard_address=a.b.c.d run.sh"
-  echo "USAGE: wg_addr=a.b.c.d bash run.sh"
+  echo "USAGE: allow_ssh_from_provisioner=true wg_addr=a.b.c.d bash run.sh"
   echo "-----"
   display_steps
   exit 1
@@ -80,6 +81,12 @@ if [ -z "$userdata_wireguard_address" ]; then
     usage
   fi
   userdata_wireguard_address="$wg_addr"
+fi
+
+# TODO: Update allow_ssh_from_provisioner to take an IP address or an empty string.
+if [ ! "$allow_ssh_from_provisioner" = "true" ] && [ ! "$allow_ssh_from_provisioner" = "false" ]; then
+  echo "allow_ssh_from_provisioner must be either true or false"
+  usage
 fi
 
 echo "Be sure we're running as root"
@@ -111,6 +118,7 @@ echo "Creating ssh authorized keys file..."
 mkdir -p "${home}/.ssh"
 chown "$userdata_admin_username" "${home}/.ssh"
 chmod 700 "${home}/.ssh"
+# TODO: Extract key into a variable.
 echo "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAZ0+EyH5FgErxe7B5Vd5NT18vlaBVPC1yt9hlwGCO2J dan@mbp" > "${home}/.ssh/authorized_keys"
 chown "$userdata_admin_username" "${home}/.ssh/authorized_keys"
 chmod 600 "${home}/.ssh/authorized_keys"
@@ -167,11 +175,17 @@ if [ "$platform" = "MacOS" ]; then
   cat ${wg_dir}/publickey| socat -u STDIN udp4-listen:51820
   echo "Shared. Now starting wg..."
   wg-quick up utun0
+
+  echo "Block ssh"
   cat <<EOS >/etc/pf.conf
 
 block return in proto tcp from any to any port 22
+EOS
+  if [ "$allow_ssh_from_provisioner" = "true" ]; then
+    cat <<EOS >/etc/pf.conf
 pass in inet proto tcp from 192.168.192.1/32 to any port 22 no state
 EOS
+  fi
   pfctl -f /etc/pf.conf && pfctl -E
   echo "Starting ssh"
   systemsetup -setremotelogin on
