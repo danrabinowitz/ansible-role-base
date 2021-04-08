@@ -48,7 +48,7 @@ function display_steps {
     echo "3) Create an account which will be the admin account"
     echo "4) Open Terminal and run this script"
     echo "   curl -fsSL https://d2r.io/macos1 > run.sh"
-    echo "   wg_addr=a.b.c.d bash run.sh"
+    echo "   allow_ssh_from_provisioner=true wg_addr=a.b.c.d bash run.sh"
   else
     echo "Use cloud init"
   fi
@@ -94,6 +94,7 @@ if [ $EUID != 0 ]; then
   echo "Not root. Trying again with sudo..."
   set -x
   sudo \
+    allow_ssh_from_provisioner="$allow_ssh_from_provisioner" \
     userdata_admin_username="$userdata_admin_username" \
     userdata_wireguard_address="$userdata_wireguard_address" \
     bash "$0" "$@";
