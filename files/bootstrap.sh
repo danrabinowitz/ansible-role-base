@@ -189,10 +189,21 @@ if [ "$platform" = "MacOS" ]; then
   echo "Block ssh"
   cat <<EOS >/etc/pf.conf
 
+anchor "com.djrtechconsulting/*"
+load anchor "com.djrtechconsulting" from "/etc/pf.anchors/com.djrtechconsulting"
+EOS
+
+  cat <<EOS >/etc/pf.anchors/com.djrtechconsulting
+anchor "SSH"
+load anchor "SSH" from "/etc/pf.rules/pfssh.rule"
+EOS
+
+  mkdir -p /etc/pf.rules
+  cat <<EOS >/etc/pf.rules/pfssh.rule
 block return in proto tcp from any to any port 22
 EOS
   if [ "$allow_ssh_from_provisioner" = "true" ]; then
-    cat <<EOS >/etc/pf.conf
+    cat <<EOS >>/etc/pf.rules/pfssh.rule
 pass in inet proto tcp from 192.168.192.1/32 to any port 22 no state
 EOS
   fi

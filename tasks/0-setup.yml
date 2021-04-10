@@ -71,7 +71,7 @@
 
 - name: "setup : Set wheel_group"
   set_fact:
-     wheel_group: "{{ 'root' if ansible_os_family == 'Darwin' else 'wheel' }}"
+     wheel_group: "{{ 'wheel' if ansible_os_family == 'Darwin' else 'wheel' }}"
   tags:
     - always
 

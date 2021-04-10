@@ -104,6 +104,14 @@
   notify:
     - Restart prometheus-node-exporter Darwin
 
+- name: Create /usr/local/sbin
+  file:
+    path: "/usr/local/sbin"
+    state: directory
+    owner: root
+    group: wheel
+    mode: 0755
+
 - name: Install node-exporter-shell
   copy:
     src: node-exporter-shell.sh

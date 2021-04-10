@@ -51,12 +51,18 @@
 
 
 - set_fact:
-    path_prepend: "{{ 'PATH=/usr/local/bin:$PATH' if ansible_os_family == 'Darwin' else 'PATH=$PATH' }}"
+    path: "{{ ansible_env.PATH }}"
   check_mode: no
+- set_fact:
+    path: "{{ homebrew_prefix }}/bin:{{ homebrew_prefix }}/sbin:{{ ansible_env.PATH }}"
+  check_mode: no
+  when: ansible_os_family == 'Darwin'
 
 
 - name: Get wg interface - real
-  shell: "{{ path_prepend }}; wg | grep '^interface: ' | cut -d' ' -f2"
+  shell: "wg | grep '^interface: ' | cut -d' ' -f2"
+  environment:
+    PATH: "{{ path }}"
   changed_when: false
   check_mode: no
   register: wg_interface_real_reg
@@ -66,14 +72,26 @@
   check_mode: no
   when: wg_interface_real is not defined
 
+- name: wg_interface_real
+  debug:
+    msg: "{{ wg_interface_real }}"
+    # verbosity: "1"
+  check_mode: no
 
 - set_fact:
     wg_interface: "{{ 'utun0' if ansible_os_family == 'Darwin' else 'wg0' }}"
   check_mode: no
   # when: wg_interface is not defined
+- name: wg_interface
+  debug:
+    msg: "{{ wg_interface }}"
+    # verbosity: "1"
+  check_mode: no
 
 - name: Get wg ips of all peers
-  shell: "{{ path_prepend }}; wg showconf {{ wg_interface_real }} | grep '^AllowedIPs ' | awk '{print $3}' | cut -d/ -f1"
+  shell: "wg showconf {{ wg_interface_real }} | grep '^AllowedIPs ' | awk '{print $3}' | cut -d/ -f1"
+  environment:
+    PATH: "{{ path }}"
   changed_when: false
   check_mode: no
   register: get_current_wireguard_peer_ips
@@ -122,12 +140,16 @@
   when: (wireguard_peer_vpn_ips_to_add | length>0)
 
 - name: Add wg peers
-  shell: "{{ path_prepend }};{{ item }}"
+  shell: "{{ item }}"
+  environment:
+    PATH: "{{ path }}"
   with_items: "{{ get_wireguard_add_peer_commands.stdout_lines }}"
   when: (wireguard_peer_vpn_ips_to_add | length>0)
 
 - name: Save and restart wg
-  shell: "{{ path_prepend }}; wg-quick save {{ wg_interface }} && wg-quick down {{ wg_interface }} && wg-quick up {{ wg_interface }}"
+  shell: "wg-quick save {{ wg_interface }} && wg-quick down {{ wg_interface }} && wg-quick up {{ wg_interface }}"
+  environment:
+    PATH: "{{ path }}"
   when: (wireguard_peer_vpn_ips_to_add | length>0) and (ansible_os_family == 'Debian')
 
 # Start wg on bootup

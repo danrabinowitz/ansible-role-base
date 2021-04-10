@@ -1,21 +1,57 @@
+- name: Declare com.djrtechconsulting anchor
+  lineinfile:
+    path: /etc/pf.conf
+    line: 'anchor "com.djrtechconsulting/*"'
+  notify:
+    - Reload pfconf
+- name: Load com.djrtechconsulting anchor
+  lineinfile:
+    path: /etc/pf.conf
+    line: 'load anchor "com.djrtechconsulting" from "/etc/pf.anchors/com.djrtechconsulting"'
+  notify:
+    - Reload pfconf
+
+- name: Declare com.djrtechconsulting / SSH anchor
+  lineinfile:
+    path: /etc/pf.anchors/com.djrtechconsulting
+    line: 'anchor "SSH"'
+    create: yes
+  notify:
+    - Reload pfconf
+- name: Load com.djrtechconsulting / SSH anchor
+  lineinfile:
+    path: /etc/pf.anchors/com.djrtechconsulting
+    line: 'load anchor "SSH" from "/etc/pf.rules/pfssh.rule"'
+  notify:
+    - Reload pfconf
+
+- name: Ensure /etc/pf.rules exists
+  file:
+    path: "/etc/pf.rules"
+    state: directory
+    owner: "root"
+    group: "{{ wheel_group }}"
+    mode: 0755
+
 # ssh
 - name: Block all ssh connections by default
   lineinfile:
-    path: /etc/pf.conf
+    path: /etc/pf.rules/pfssh.rule
     line: 'block return in proto tcp from any to any port 22'
+    create: yes
   notify:
     - Reload pfconf
 
 - name: Allow connections from Dan's MBP
   lineinfile:
-    path: /etc/pf.conf
+    path: /etc/pf.rules/pfssh.rule
     line: 'pass in inet proto tcp from 192.168.192.1/32 to any port 22 no state'
   notify:
     - Reload pfconf
 
 - name: Allow connections from localhost when on dan's mbp
   lineinfile:
-    path: /etc/pf.conf
+    path: /etc/pf.rules/pfssh.rule
     line: 'pass in inet proto tcp from 127.0.0.1/32 to any port 22 no state'
   when: allow_local_ansible | default(False)
   notify:
@@ -23,7 +59,7 @@
 
 - name: Allow connections from utility server
   lineinfile:
-    path: /etc/pf.conf
+    path: /etc/pf.rules/pfssh.rule
     line: 'pass in inet proto tcp from 10.0.0.1/32 to any port 22 no state'
   when: allow_ssh_from_utility | default(False)
   notify:
@@ -31,7 +67,7 @@
 
 - name: Allow connections from devenv server
   lineinfile:
-    path: /etc/pf.conf
+    path: /etc/pf.rules/pfssh.rule
     line: 'pass in inet proto tcp from 10.0.0.4/32 to any port 22 no state'
   when: allow_ssh_from_devenv | default(False)
   notify:
@@ -39,7 +75,7 @@
 
 - name: Allow connections from Dan's phone
   lineinfile:
-    path: /etc/pf.conf
+    path: /etc/pf.rules/pfssh.rule
     line: 'pass in inet proto tcp from 10.0.0.6/32 to any port 22 no state'
   when: allow_ssh_from_secure | default(False)
   notify:
@@ -47,23 +83,37 @@
 
 - name: Allow connections from devenv-blue server
   lineinfile:
-    path: /etc/pf.conf
+    path: /etc/pf.rules/pfssh.rule
     line: 'pass in inet proto tcp from 10.0.0.9/32 to any port 22 no state'
   when: allow_ssh_from_devenv | default(False)
+  notify:
+    - Reload pfconf
+
+- name: Declare com.djrtechconsulting / VNC anchor
+  lineinfile:
+    path: /etc/pf.anchors/com.djrtechconsulting
+    line: 'anchor "VNC"'
+  notify:
+    - Reload pfconf
+- name: Load com.djrtechconsulting / VNC anchor
+  lineinfile:
+    path: /etc/pf.anchors/com.djrtechconsulting
+    line: 'load anchor "VNC" from "/etc/pf.rules/pfvnc.rule"'
   notify:
     - Reload pfconf
 
 # VNC (screen sharing)
 - name: Block all connections by default
   lineinfile:
-    path: /etc/pf.conf
+    path: /etc/pf.rules/pfvnc.rule
     line: 'block return in proto tcp from any to any port 5900'
+    create: yes
   notify:
     - Reload pfconf
 
 - name: Allow connections from Dan's MBP
   lineinfile:
-    path: /etc/pf.conf
+    path: /etc/pf.rules/pfvnc.rule
     line: 'pass in inet proto tcp from 192.168.192.1/32 to any port 5900 no state'
   when: allow_vnc_from_secure | default(False)
   notify:

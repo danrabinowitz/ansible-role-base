@@ -2,6 +2,10 @@
   tags:
     - wireguard
 
+- include: 1b-tailscale.yml
+  tags:
+    - tailscale
+
 - include: 2-etc_hosts.yml
   when: ansible_os_family == 'Debian'
   tags:
