@@ -115,7 +115,15 @@
 - name: "setup : homebrew prefix"
   set_fact:
      homebrew_prefix: "{{ '/opt/homebrew' if ansible_architecture == 'arm64' else '/usr/local' }}"
-  when: ansible_os_family == 'Darwin'
+  when: ansible_os_family == 'Darwin' and (homebrew_prefix is not defined)
+  tags:
+    - always
+
+- name: Debug homebrew_prefix
+  debug:
+    var: homebrew_prefix
+    # verbosity: "1"
+  check_mode: no
   tags:
     - always
 
@@ -126,8 +134,17 @@
   when: ansible_os_family == 'Darwin'
   check_mode: no
   changed_when: false
-  # tags:
-  #   - always
+  register: brew_prefix_reg
+  tags:
+    - always
+
+- name: Debug brew_prefix_reg
+  debug:
+    var: brew_prefix_reg
+    # verbosity: "1"
+  check_mode: no
+  tags:
+    - always
 
 - name: Ensure group "brew" exists
   group:
@@ -143,4 +160,6 @@
     recurse: yes
     group: brew
     mode: g+w
-  when: ansible_os_family == 'Darwin'
+  when: ansible_os_family == 'Darwin' and (homebrew_prefix != "/usr/local")
+  # tags:
+  #   - wip

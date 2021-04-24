@@ -38,7 +38,7 @@
   when: ansible_os_family == 'Debian'
 
 - name: Install tailscale system daemon
-  shell: mv /usr/local/sbin/tailscaled /usr/local/sbin/tailscaled-orig && /usr/local/sbin/tailscaled-orig install-system-daemon
+  shell: mv /usr/local/bin/tailscaled /usr/local/bin/tailscaled-orig && /usr/local/bin/tailscaled-orig install-system-daemon
   args:
     creates: /Library/LaunchDaemons/com.tailscale.tailscaled.plist
   when: ansible_os_family == 'Darwin'
@@ -73,6 +73,8 @@
   # The command module cannot use | ; &
   # So we are ok not quoting the variables
   command: tailscale up --authkey={{ tailscale_auth_key.user_input }} {{ tailscale_args | default() }}
+  environment:
+    PATH: "{{ homebrew_prefix | default('') }}/bin:{{ homebrew_prefix  | default('') }}/sbin:/usr/local/sbin:/usr/local/bin:{{ ansible_env.PATH }}"
   # Since the auth key is included in this task, we do not want to log output
   # no_log: true
   register: tailscale_start

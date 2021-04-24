@@ -15,12 +15,16 @@
     line: 'anchor "com.djrtechconsulting/*"'
   notify:
     - Reload pfconf
+  tags:
+    - wip
 - name: Load com.djrtechconsulting anchor
   lineinfile:
     path: /etc/pf.conf
     line: 'load anchor "com.djrtechconsulting" from "/etc/pf.anchors/com.djrtechconsulting"'
   notify:
     - Reload pfconf
+  tags:
+    - wip
 
 - name: Declare com.djrtechconsulting / SSH anchor
   lineinfile:
@@ -29,6 +33,7 @@
     create: yes
   notify:
     - Reload pfconf
+
 - name: Load com.djrtechconsulting / SSH anchor
   lineinfile:
     path: /etc/pf.anchors/com.djrtechconsulting
@@ -227,6 +232,69 @@
   when: allow_vnc_from_secure | default(False)
   notify:
     - Reload pfconf
+- name: Allow connections from Dan's MBA
+  lineinfile:
+    path: /etc/pf.rules/pfvnc.rule
+    line: 'pass in inet proto tcp from 192.168.192.2/32 to any port 5900 no state'
+  when: allow_vnc_from_secure | default(False)
+  notify:
+    - Reload pfconf
+
+- name: Allow connections from Dan's MBP
+  lineinfile:
+    path: /etc/pf.rules/pfvnc.rule
+    line: 'pass in inet proto tcp from 100.114.172.117/32 to any port 5900 no state'
+  when: allow_vnc_from_secure | default(False)
+  notify:
+    - Reload pfconf
+- name: Allow connections from Dan's MBA
+  lineinfile:
+    path: /etc/pf.rules/pfvnc.rule
+    line: 'pass in inet proto tcp from 100.108.82.116/32 to any port 5900 no state'
+  when: allow_vnc_from_secure | default(False)
+  notify:
+    - Reload pfconf
+
+
+# Kerberos, needed for VNC (screen sharing)
+- name: Block all connections by default
+  lineinfile:
+    path: /etc/pf.rules/pfvnc.rule
+    line: 'block return in proto tcp from any to any port 88'
+    create: yes
+  notify:
+    - Reload pfconf
+
+- name: Allow connections from Dan's MBP
+  lineinfile:
+    path: /etc/pf.rules/pfvnc.rule
+    line: 'pass in inet proto tcp from 192.168.192.1/32 to any port 88 no state'
+  when: allow_vnc_from_secure | default(False)
+  notify:
+    - Reload pfconf
+- name: Allow connections from Dan's MBA
+  lineinfile:
+    path: /etc/pf.rules/pfvnc.rule
+    line: 'pass in inet proto tcp from 192.168.192.2/32 to any port 88 no state'
+  when: allow_vnc_from_secure | default(False)
+  notify:
+    - Reload pfconf
+
+- name: Allow connections from Dan's MBP
+  lineinfile:
+    path: /etc/pf.rules/pfvnc.rule
+    line: 'pass in inet proto tcp from 100.114.172.117/32 to any port 88 no state'
+  when: allow_vnc_from_secure | default(False)
+  notify:
+    - Reload pfconf
+- name: Allow connections from Dan's MBA
+  lineinfile:
+    path: /etc/pf.rules/pfvnc.rule
+    line: 'pass in inet proto tcp from 100.108.82.116/32 to any port 88 no state'
+  when: allow_vnc_from_secure | default(False)
+  notify:
+    - Reload pfconf
+
 
 
 # TODO: https://github.com/drduh/macOS-Security-and-Privacy-Guide#firewall
@@ -282,6 +350,29 @@
   shell: "/usr/libexec/ApplicationFirewall/socketfilterfw --add {{ wireguard_go_path_reg.stdout }}"
   when: not alf_wireguard_allowed
 
+
+
+
+- name: Check if tailscale if allowed in the Application Firewall (ALF)
+  shell: "/usr/libexec/ApplicationFirewall/socketfilterfw --listapps | grep -c '{{ tailscaled_path }}' || true"
+  register: alf_tailscale_reg
+  check_mode: no
+  changed_when: false
+
+- set_fact:
+    alf_tailscale_allowed: "{{ alf_tailscale_reg.stdout == '1' }}"
+  check_mode: no
+
+- name: Debug alf_tailscale_allowed
+  debug:
+    var: alf_tailscale_allowed
+    # verbosity: "1"
+  check_mode: no
+
+- name: Unblock tailscale for the Application Firewall (ALF)
+  # shell: "/usr/libexec/ApplicationFirewall/socketfilterfw --unblockapp {{ tailscaled_path }}"
+  shell: "/usr/libexec/ApplicationFirewall/socketfilterfw --add {{ tailscaled_path }}"
+  when: not alf_tailscale_allowed
 
 
 

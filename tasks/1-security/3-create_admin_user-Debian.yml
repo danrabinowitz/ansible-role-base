@@ -18,22 +18,6 @@
     groups: wheel
     append: yes
 
-- name: Set permissions for .ssh
-  file:
-    path: /home/{{ admin_username }}/.ssh
-    state: directory
-    owner: "{{ admin_username }}"
-    group: "{{ admin_username }}"
-    mode: 0700
-
-- name: Install authorized_keys
-  template:
-    src: .ssh/authorized_keys
-    dest: /home/{{ admin_username }}/.ssh/authorized_keys
-    owner: "{{ admin_username }}"
-    group: "{{ admin_username }}"
-    mode: 0600
-
 - name: Get the value for the grace period
   shell: "echo $(($(date +'%s') + 3600))"
   check_mode: no

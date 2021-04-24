@@ -2,3 +2,23 @@
   when: ansible_os_family == 'Darwin'
 - import_tasks: 3-create_admin_user-Debian.yml
   when: ansible_os_family == 'Debian'
+
+- name: Set permissions for .ssh
+  file:
+    path: /home/{{ admin_username }}/.ssh
+    state: directory
+    owner: "{{ admin_username }}"
+    group: "{{ admin_username }}"
+    mode: 0700
+  tags:
+    - authorized_keys
+
+- name: Install authorized_keys
+  template:
+    src: .ssh/authorized_keys
+    dest: /home/{{ admin_username }}/.ssh/authorized_keys
+    owner: "{{ admin_username }}"
+    group: "{{ admin_username }}"
+    mode: 0600
+  tags:
+    - authorized_keys

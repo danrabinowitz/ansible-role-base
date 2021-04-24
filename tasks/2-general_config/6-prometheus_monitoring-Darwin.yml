@@ -22,6 +22,13 @@
   notify:
     - Reload pfconf
 
+- name: Allow connections from prometheus server
+  lineinfile:
+    path: /etc/pf.conf
+    line: 'pass in inet proto tcp from 100.69.64.28/32 to any port 9100 no state'
+  notify:
+    - Reload pfconf
+
 - name: Create launchd plist
   template:
     src: macos/Library/LaunchDaemons/homebrew.mxcl.node_exporter.plist.j2
@@ -108,8 +115,8 @@
   file:
     path: "/usr/local/sbin"
     state: directory
-    owner: root
-    group: wheel
+    owner: "{{ admin_username }}"
+    group: admin
     mode: 0755
 
 - name: Install node-exporter-shell
@@ -119,8 +126,6 @@
     owner: root
     group: wheel
     mode: 0755
-  tags:
-    - wip
 
 - name: Create launchd plist for node-exporter-shell
   copy:
@@ -130,8 +135,6 @@
     group: wheel
     mode: 0644
   register: shell_plist
-  tags:
-    - wip
 
 - name: Get socat path
   shell: echo "$(brew --cellar socat)/$(brew list --versions socat | awk '{print $2}')/bin/socat"
@@ -181,6 +184,12 @@
   lineinfile:
     path: /etc/pf.conf
     line: 'pass in inet proto tcp from 10.0.0.1/32 to any port 9806 no state'
+  notify:
+    - Reload pfconf
+- name: Allow connections from prometheus server
+  lineinfile:
+    path: /etc/pf.conf
+    line: 'pass in inet proto tcp from 100.69.64.28/32 to any port 9806 no state'
   notify:
     - Reload pfconf
 
@@ -238,5 +247,11 @@
   lineinfile:
     path: /etc/pf.conf
     line: 'pass in inet proto tcp from 10.0.0.1/32 to any port 9807 no state'
+  notify:
+    - Reload pfconf
+- name: Allow connections from prometheus server
+  lineinfile:
+    path: /etc/pf.conf
+    line: 'pass in inet proto tcp from 100.69.64.28/32 to any port 9807 no state'
   notify:
     - Reload pfconf

@@ -16,3 +16,24 @@
     line: "{{ item }}"
   with_items: "{{ wg_etc_host_entries }}"
   when: (wg_etc_host_entries | length>0)
+
+# Get IP/Hostnames for tailscale from running "tailscale status"
+- name: Get tailscale status info
+  shell: tailscale status --json | jq -r '.Self,.Peer[] | [(.DNSName | split(".")[0] + ".vpn2.djrtechconsulting.com"), .TailAddr] | .[1]+" "+.[0]'
+  delegate_to: nas1
+  changed_when: false
+  check_mode: no
+  register: tailscale_names_to_etc_host_entries_conversion
+
+- name: set tailscale_host_entries
+  set_fact:
+    tailscale_host_entries: "{{ tailscale_names_to_etc_host_entries_conversion.stdout_lines }}"
+  check_mode: no
+
+- name: add tailscale hosts to /etc/hosts
+  lineinfile:
+    path: /etc/hosts
+    regexp: "^\\s*{{ item.split(' ')[0] }}\\s+"
+    line: "{{ item }}"
+  with_items: "{{ tailscale_host_entries }}"
+  when: (tailscale_host_entries | length>0)

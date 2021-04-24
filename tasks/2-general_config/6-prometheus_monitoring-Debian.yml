@@ -95,8 +95,8 @@
     owner: root
     group: root
     mode: '0644'
-- name: Enable node-exporter-shell
-  systemd:
-    name: "node-exporter-shell"
-    enabled: yes
-    state: started
+# - name: Enable node-exporter-shell
+#   systemd:
+#     name: "node-exporter-shell"
+#     enabled: yes
+#     state: started
