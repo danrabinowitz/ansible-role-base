@@ -1,3 +1,14 @@
+# TODO: Try a top-level anchor for djr-managed stuff, which starts with "block all" and then handles ssh, etc
+
+# - name: Block all incoming connections by default
+#   lineinfile:
+#     path: /etc/pf.conf
+#     line: 'block all'
+#     # insertbefore: BOF
+#   notify:
+#     - Reload pfconf
+
+
 - name: Declare com.djrtechconsulting anchor
   lineinfile:
     path: /etc/pf.conf
@@ -48,6 +59,25 @@
     line: 'pass in inet proto tcp from 192.168.192.1/32 to any port 22 no state'
   notify:
     - Reload pfconf
+- name: Allow connections from Dan's MBA
+  lineinfile:
+    path: /etc/pf.rules/pfssh.rule
+    line: 'pass in inet proto tcp from 192.168.192.2/32 to any port 22 no state'
+  notify:
+    - Reload pfconf
+
+- name: Allow connections from Dan's MBP via tailscale
+  lineinfile:
+    path: /etc/pf.rules/pfssh.rule
+    line: 'pass in inet proto tcp from 100.114.172.117/32 to any port 22 no state'
+  notify:
+    - Reload pfconf
+- name: Allow connections from Dan's MBA via tailscale
+  lineinfile:
+    path: /etc/pf.rules/pfssh.rule
+    line: 'pass in inet proto tcp from 100.108.82.116/32 to any port 22 no state'
+  notify:
+    - Reload pfconf
 
 - name: Allow connections from localhost when on dan's mbp
   lineinfile:
@@ -88,6 +118,85 @@
   when: allow_ssh_from_devenv | default(False)
   notify:
     - Reload pfconf
+
+
+
+- name: Allow connections for tailscale
+  lineinfile:
+    path: /etc/pf.conf
+    line: 'pass in inet proto udp to any port 41641 no state'
+  notify:
+    - Reload pfconf
+- name: Block connections for http
+  lineinfile:
+    path: /etc/pf.conf
+    line: 'block return in proto tcp from any to any port 80'
+  notify:
+    - Reload pfconf
+- name: Block connections for https
+  lineinfile:
+    path: /etc/pf.conf
+    line: 'block return in proto tcp from any to any port 443'
+  notify:
+    - Reload pfconf
+- name: Block connections for syncthing
+  lineinfile:
+    path: /etc/pf.conf
+    line: 'block return in proto tcp from any to any port 22000'
+  notify:
+    - Reload pfconf
+
+- name: Allow connections for syncthing
+  lineinfile:
+    path: /etc/pf.conf
+    line: 'pass in inet proto tcp from 100.64.239.8/32 to any port 22000 no state'
+  notify:
+    - Reload pfconf
+- name: Allow connections for syncthing
+  lineinfile:
+    path: /etc/pf.conf
+    line: 'pass in inet proto tcp from 10.0.0.8/32 to any port 22000 no state'
+  notify:
+    - Reload pfconf
+- name: Allow connections for syncthing
+  lineinfile:
+    path: /etc/pf.conf
+    line: 'pass in inet proto tcp from 100.114.172.117/32 to any port 22000 no state'
+  notify:
+    - Reload pfconf
+- name: Allow connections for syncthing
+  lineinfile:
+    path: /etc/pf.conf
+    line: 'pass in inet proto tcp from 192.168.192.1/32 to any port 22000 no state'
+  notify:
+    - Reload pfconf
+- name: Allow connections for syncthing
+  lineinfile:
+    path: /etc/pf.conf
+    line: 'pass in inet proto tcp from 100.108.82.116/32 to any port 22000 no state'
+  notify:
+    - Reload pfconf
+- name: Allow connections for syncthing
+  lineinfile:
+    path: /etc/pf.conf
+    line: 'pass in inet proto tcp from 192.168.192.2/32 to any port 22000 no state'
+  notify:
+    - Reload pfconf
+
+
+- name: Block connections for Apple rapportd on tailscale
+  lineinfile:
+    path: /etc/pf.conf
+    line: 'block return in proto tcp from 100.0.0.0/8 to any port 49348'
+  notify:
+    - Reload pfconf
+- name: Block connections for Omnifocus on tailscale
+  lineinfile:
+    path: /etc/pf.conf
+    line: 'block return in proto tcp from 100.0.0.0/8 to any port 49377'
+  notify:
+    - Reload pfconf
+
 
 - name: Declare com.djrtechconsulting / VNC anchor
   lineinfile:

@@ -4,31 +4,38 @@
 #   tags:
 #     - always
 
-- set_fact:
-    # goos: "{{ 'darwin' if ansible_os_family == 'Darwin' else '' }}"
-    goos: "{{ d[ansible_os_family] | default ('unknown-goos') }}"
-  vars:
-    d: {Darwin: 'darwin', "OtherLinux": "linux"}
-  check_mode: no
-
-- set_fact:
-    goarch: "{{ d[ansible_architecture] | default ('unknown-goarch') }}"
-  vars:
-    d: {'arm64': 'arm64', 'x86_64': 'amd64'}
-    # goarch: "{{ ansible_architecture if ansible_architecture in ['arm64'] elif ansible_architecture = 'amd64' }}"
-    # goarch: "{{ ansible_architecture }}"
-  check_mode: no
-
 - name: Install tailscale{,d}
   copy:
     src: tailscale/{{ goos }}-{{ goarch }}/bin/{{ item }}
-    dest: /usr/local/sbin
+    dest: /usr/local/bin
     owner: root
-    group: "root"
+    group: "{{ wheel_group }}"
     mode: 0755
+    force: no
   with_items:
     - tailscale
     - tailscaled
+  when: ansible_os_family != 'Debian'
+
+- name: ensure do-agent apt repository public key is installed
+  apt_key:
+    url: https://pkgs.tailscale.com/stable/ubuntu/bionic.gpg
+    state: present
+  when: ansible_os_family == 'Debian'
+
+- name: ensure apt repository is enabled
+  apt_repository:
+    repo: deb https://pkgs.tailscale.com/stable/ubuntu bionic main
+    filename: tailscale
+    update_cache: true
+    state: present
+  when: ansible_os_family == 'Debian'
+
+- name: ensure latest package is installed
+  package:
+    name: tailscale
+    state: latest
+  when: ansible_os_family == 'Debian'
 
 - name: Install tailscale system daemon
   shell: mv /usr/local/sbin/tailscaled /usr/local/sbin/tailscaled-orig && /usr/local/sbin/tailscaled-orig install-system-daemon
@@ -41,11 +48,16 @@
   command: tailscale status
   changed_when: false
   register: tailscale_status
+  check_mode: no
+  # failed_when: false
+  environment:
+    PATH: "{{ homebrew_prefix | default('') }}/bin:{{ homebrew_prefix  | default('') }}/sbin:/usr/local/sbin:/usr/local/bin:{{ ansible_env.PATH }}"
 
 - name: Tailscale Status
   debug:
     var: tailscale_status
-  when: verbose | bool
+  # when: verbose | bool
+  check_mode: no
 
 - name: Get tailscale auth key
   pause:
@@ -53,17 +65,19 @@
     echo: no
   register: tailscale_auth_key
   no_log: true
-  when: False
+  when: >
+    ('nas1' not in tailscale_status.stdout)
 
 - name: Bring Tailscale Up
   become: true
   # The command module cannot use | ; &
   # So we are ok not quoting the variables
-  command: /usr/local/bin/tailscale up --authkey={{ tailscale_auth_key.user_input }} {{ tailscale_args | default() }}
+  command: tailscale up --authkey={{ tailscale_auth_key.user_input }} {{ tailscale_args | default() }}
   # Since the auth key is included in this task, we do not want to log output
   # no_log: true
   register: tailscale_start
-  when: False
+  when: >
+    ('nas1' not in tailscale_status.stdout)
 
   # when: >
   #   and 'hello-ipn-dev' not in tailscale_status.stdout)

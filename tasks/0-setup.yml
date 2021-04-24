@@ -75,6 +75,25 @@
   tags:
     - always
 
+- set_fact:
+    # goos: "{{ 'darwin' if ansible_os_family == 'Darwin' else '' }}"
+    goos: "{{ d[ansible_os_family] | default ('unknown-goos') }}"
+  vars:
+    d: {Darwin: 'darwin', "OtherLinux": "linux", "Debian": "linux"}
+  check_mode: no
+  tags:
+    - always
+
+- set_fact:
+    goarch: "{{ d[ansible_architecture] | default ('unknown-goarch') }}"
+  vars:
+    d: {'arm64': 'arm64', 'x86_64': 'amd64'}
+    # goarch: "{{ ansible_architecture if ansible_architecture in ['arm64'] elif ansible_architecture = 'amd64' }}"
+    # goarch: "{{ ansible_architecture }}"
+  check_mode: no
+  tags:
+    - always
+
 - name: Print ansible_architecture
   ansible.builtin.debug:
     var: ansible_architecture
@@ -109,3 +128,19 @@
   changed_when: false
   # tags:
   #   - always
+
+- name: Ensure group "brew" exists
+  group:
+    name: brew
+    state: present
+    # gid: "472"
+  when: ansible_os_family == 'Darwin'
+
+- name: Set perms for brew directory
+  ansible.builtin.file:
+    path: "{{ homebrew_prefix }}"
+    state: directory
+    recurse: yes
+    group: brew
+    mode: g+w
+  when: ansible_os_family == 'Darwin'

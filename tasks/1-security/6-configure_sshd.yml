@@ -29,6 +29,28 @@
   check_mode: no
 
 
+
+- name: Get tailscale IP
+  shell: tailscale status --json | jq -r '.Self.TailAddr'
+  register: tailscale_ip_v4_reg
+  changed_when: false
+  check_mode: no
+  environment:
+    PATH: "{{ homebrew_prefix | default('') }}/bin:{{ homebrew_prefix | default('') }}/sbin:/usr/local/sbin:/usr/local/bin:{{ ansible_env.PATH }}"
+- name: tailscale_ip_v4_reg
+  debug:
+    msg: "{{ tailscale_ip_v4_reg }}"
+    # verbosity: "1"
+  check_mode: no
+- set_fact:
+    tailscale_ip_v4: "{{ tailscale_ip_v4_reg.stdout }}"
+  check_mode: no
+- name: tailscale_ip_v4
+  debug:
+    msg: "{{ tailscale_ip_v4 }}"
+    # verbosity: "1"
+  check_mode: no
+
 # Use a custom, secure sshd config
 # Note: We do NOT include this template with this role, so that the role can be public while keeping the
 # slightly-confidential sshd settings more private.

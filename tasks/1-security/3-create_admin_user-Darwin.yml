@@ -54,3 +54,10 @@
 #     dest: /Users/{{ admin_username }}/.bashrc
 #     state: present
 #     line: 'export PATH="${PATH}:/usr/local/bin"'
+
+
+- name: Adding user
+  user:
+    name: "{{ admin_username }}"
+    groups: brew
+    append: yes

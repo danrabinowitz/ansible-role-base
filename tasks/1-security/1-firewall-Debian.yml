@@ -1,10 +1,10 @@
-- name: "Security : Upgrade  : Install ufw if needed"
-  apt:
-    name: ['ufw']
-    state: present
-    update_cache: yes
-    install_recommends: no
-    force_apt_get: yes
+# - name: "Security : Upgrade  : Install ufw if needed"
+#   apt:
+#     name: ['ufw']
+#     state: present
+#     update_cache: yes
+#     install_recommends: no
+#     # force_apt_get: yes
 
 - name: "Security : Firewall: Allow wireguard traffic"
   ufw:
@@ -24,6 +24,19 @@
   with_items: "{{ ips_from_which_ssh_is_allowed_via_wireguard }}"
   when: not(
           (ips_from_which_ssh_is_allowed_via_wireguard is undefined)
+        )
+
+- name: "Security : Firewall : Allow ssh access over tailscale"
+  ufw:
+    rule: allow
+    port: ssh
+    proto: tcp
+    direction: in
+    interface: tailscale0
+    from_ip: "{{ item }}"
+  with_items: "{{ ips_from_which_ssh_is_allowed_via_tailscale }}"
+  when: not(
+          (ips_from_which_ssh_is_allowed_via_tailscale is undefined)
         )
 
 # This is blocked by DO firewall. But could be opened for recovery purposes if wireguard fails.
