@@ -162,4 +162,18 @@
     mode: g+w
   when: ansible_os_family == 'Darwin' and (homebrew_prefix != "/usr/local")
   # tags:
-  #   - wip
+  #   - always
+
+- name: Ensure group "brew" exists
+  group:
+    name: brew
+    state: present
+    # gid: "472"
+
+- name: Set perms for brew directory
+  ansible.builtin.file:
+    path: "{{ homebrew_prefix }}"
+    state: directory
+    recurse: yes
+    group: brew
+    mode: g+w
