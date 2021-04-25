@@ -190,9 +190,10 @@
       tags:
         - wireguard_forward
   vars:
-    name: "{{ wireguard_forwarding.routes[0].name }}"
-    src_ips: "{{ wireguard_forwarding.routes[0].src }}"
-    dst_ips: "{{ wireguard_forwarding.routes[0].dst }}"
+    routes: "{{ wireguard_forwarding.routes }}"
+    # name: "{{ wireguard_forwarding.routes[0].name }}"
+    # src_ips: "{{ wireguard_forwarding.routes | map(attribute='src') }}"
+    # dst_ips: "{{ wireguard_forwarding.routes | map(attribute='dst') }}"
   when: wireguard_forwarding is defined
   tags:
     - wireguard_forward

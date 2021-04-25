@@ -39,8 +39,8 @@ fi
 iptables "$action_flag" FORWARD -i "$interface" -j ACCEPT
 iptables "$action_flag" FORWARD -o "$interface" -j ACCEPT
 
-dst_ips=({{ dst_ips | default([]) | join(' ') }})
-src_ips=({{ src_ips | default([]) | join(' ') }})
+dst_ips=({{ dst_ips | list | default([]) | join(' ') }})
+src_ips=({{ src_ips | list | default([]) | join(' ') }})
 
 for dst in ${dst_ips[@]}; do
   echo "taking action on dst=${dst}"

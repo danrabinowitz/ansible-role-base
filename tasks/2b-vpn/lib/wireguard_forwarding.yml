@@ -1,15 +1,51 @@
-# - name: Debug name
-#   ansible.builtin.debug:
-#     var: name
-#   check_mode: no
-# - name: Debug src_ips
-#   ansible.builtin.debug:
-#     var: src_ips
-#   check_mode: no
-# - name: Debug dst_ips
-#   ansible.builtin.debug:
-#     var: dst_ips
-#   check_mode: no
+- name: Debug routes
+  ansible.builtin.debug:
+    var: routes
+  check_mode: no
+
+- name: Debug src_ips
+  ansible.builtin.debug:
+    msg: "{{ routes | map(attribute='src') | flatten | unique}}"
+  check_mode: no
+
+- name: Debug dst_ips
+  ansible.builtin.debug:
+    msg: "{{ routes | map(attribute='dst') | flatten | unique }}"
+  check_mode: no
+
+- name: Debug names
+  ansible.builtin.debug:
+    msg: "{{ routes | map(attribute='name') | flatten | unique }}"
+  check_mode: no
+
+- name: "name"
+  set_fact:
+     name: "{{ (routes | map(attribute='name') | flatten | unique | list)[0] }}"
+  check_mode: no
+- name: "src_ips"
+  set_fact:
+     src_ips: "{{ routes | map(attribute='src') | flatten | unique | list }}"
+  check_mode: no
+- name: "dst_ips"
+  set_fact:
+     dst_ips: "{{ routes | map(attribute='dst') | flatten | unique | list }}"
+  check_mode: no
+
+- name: Debug src_ips
+  ansible.builtin.debug:
+    var: src_ips
+  check_mode: no
+
+- name: Debug dst_ips
+  ansible.builtin.debug:
+    var: dst_ips
+  check_mode: no
+
+- name: Debug name
+  ansible.builtin.debug:
+    var: name
+  check_mode: no
+
 
 - name: install iptables-for-wg-forwarding
   template:
@@ -19,6 +55,8 @@
     group: root
     mode: 0700
   register: iptables_for_wg_forwarding
+  # vars:
+  #   src_ips: "{{ src_ips }} | list"
 
 - name: Ensure PostUp is set for forwarding
   lineinfile:
