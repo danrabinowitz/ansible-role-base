@@ -17,7 +17,7 @@
     <key>EnvironmentVariables</key>
     <dict>
       <key>PATH</key>
-      <string>/usr/local/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+      <string>{{ homebrew_prefix }}/bin:{{ homebrew_prefix }}/sbin:{{ ansible_env.PATH }}</string>
     </dict>
     <key>StandardErrorPath</key>
     <string>/usr/local/var/log/node_exporter_shell.err.log</string>

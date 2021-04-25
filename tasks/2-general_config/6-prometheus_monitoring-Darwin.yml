@@ -115,8 +115,10 @@
   file:
     path: "/usr/local/sbin"
     state: directory
-    owner: "{{ admin_username }}"
-    group: admin
+    # owner: "{{ admin_username }}"
+    owner: root
+    # group: admin
+    group: wheel
     mode: 0755
 
 - name: Install node-exporter-shell
@@ -128,8 +130,8 @@
     mode: 0755
 
 - name: Create launchd plist for node-exporter-shell
-  copy:
-    src: macos/Library/LaunchDaemons/com.djrtechconsulting.node_exporter_shell.plist
+  template:
+    src: macos/Library/LaunchDaemons/com.djrtechconsulting.node_exporter_shell.plist.j2
     dest: /Library/LaunchDaemons/com.djrtechconsulting.node_exporter_shell.plist
     owner: root
     group: wheel
