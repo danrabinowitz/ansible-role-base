@@ -169,6 +169,17 @@
   when: ansible_os_family == 'Debian'
 
 
+- name: Install wireguard_runner
+  copy:
+    src: usr/local/sbin/wireguard_runner
+    dest: /usr/local/sbin/wireguard_runner
+    owner: root
+    group: wheel
+    mode: '0700'
+  when: ansible_os_family == 'Darwin'
+  tags:
+    - wireguard_runner
+
 - name: Install wireguard plist in LaunchDaemons
   template:
     src: Library/LaunchDaemons/com.wireguard.plist.j2

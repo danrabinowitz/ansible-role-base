@@ -353,6 +353,10 @@
 
 
 
+- set_fact:
+    tailscaled_path: /usr/local/bin/tailscaled
+  check_mode: no
+
 - name: Check if tailscale if allowed in the Application Firewall (ALF)
   shell: "/usr/libexec/ApplicationFirewall/socketfilterfw --listapps | grep -c '{{ tailscaled_path }}' || true"
   register: alf_tailscale_reg

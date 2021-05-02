@@ -1,0 +1,84 @@
+#!/bin/bash
+# This file is a modified version of cloud-init.yml.tpl.
+# It is used on systems which don't use cloud-init.
+
+
+# Exit immediately if any command fails.
+set -e
+
+# Print a message to stderr when attempting to expand a variable that is not set. Also, immediately exit.
+set -u
+
+# Cause pipelines to fail on the first command which fails instead of dying later on down the pipeline.
+set -o pipefail
+
+################################################################################
+# Define variable names
+wg_interface="${wg_interface:-}"
+################################################################################
+
+if [ -z "$wg_interface" ]; then
+  >&2 echo "Error: wg_interface is required"
+  exit 1
+fi
+
+cnf_file="/usr/local/etc/wireguard/${wg_interface}.conf"
+
+function act {
+  wg-quick up "$cnf_file"
+}
+
+function check {
+  peer_list=$(wg show all peers)
+  if [ "$peer_list" = "" ]; then
+    >&2 echo "Peer list is empty which means wg failed to start."
+    return 1
+  fi
+}
+
+function run_single {
+  act
+  rc=$?
+  if [ $rc -ne 0 ]; then
+    >&2 echo "Error running act: exit code=$rc"
+    return $rc
+  fi
+
+  check
+  return $?
+}
+
+function run_loop {
+  local max_iterations=${MAX_ITERATIONS-120}
+  local iteration=0
+  # local exit_code=0
+
+  while [ $iteration -le "$max_iterations" ]; do
+    >&2 echo "wireguard_runner: run_loop: iteration ${iteration}: calling run_single"
+
+    if run_single; then
+      # true == success
+      >&2 echo "run_single succeeded"
+      return 0
+    fi
+    >&2 echo "run_single failed. Sleeping before retrying."
+    sleep 1
+
+    iteration=$(( iteration + 1 ))
+  done
+  >&2 echo "wireguard_runner: run_loop: done with loop"
+  return 1
+}
+
+################################################################################
+function main {
+  date
+  >&2 echo "wireguard_runner: Start"
+#   require_prerequisites
+  run_loop
+  >&2 echo "wireguard_runner: End"
+}
+################################################################################
+
+set +e
+main > >(tee -a /var/log/wireguard_runner.out) 2> >(tee -a /var/log/wireguard_runner.err >&2)

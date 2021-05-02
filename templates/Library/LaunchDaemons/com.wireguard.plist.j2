@@ -6,9 +6,7 @@
   <string>com.wireguard.{{ wg_interface }}</string>
   <key>ProgramArguments</key>
   <array>
-    <string>wg-quick</string>
-    <string>up</string>
-    <string>/usr/local/etc/wireguard/{{ wg_interface }}.conf</string>
+    <string>/usr/local/sbin/wireguard_runner</string>
   </array>
   <key>OnDemand</key>
   <false/>
@@ -24,6 +22,8 @@
   <dict>
     <key>PATH</key>
     <string>{{ homebrew_prefix }}/bin:{{ homebrew_prefix }}/sbin:/usr/local/sbin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string>
+    <key>wg_interface</key>
+    <string>{{ wg_interface }}</string>
   </dict>
   <key>StandardErrorPath</key>
   <string>/var/log/wireguard.{{ wg_interface }}.err</string>
