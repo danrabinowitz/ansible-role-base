@@ -174,6 +174,10 @@ cat <<EOF >>${wg_dir}/${interface}.conf
 [Peer]
 PublicKey = pz/hyQ8EKY7nSoaCFAgd7SIl3SFDnrb02CT32VksTg8=
 AllowedIPs = 192.168.192.1
+
+[Peer]
+PublicKey = jpaV3qj/LsumpaWiF/JMBslEPKx38Tdn+CFuOpgic1w=
+AllowedIPs = 192.168.192.2
 EOF
 
 if [ "$platform" = "MacOS" ]; then

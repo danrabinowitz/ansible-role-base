@@ -177,3 +177,10 @@
     recurse: yes
     group: brew
     mode: g+w
+  when: ansible_os_family == 'Darwin' and (homebrew_prefix != "/usr/local")
+
+- name: "setup : homes_base"
+  set_fact:
+     homes_base: "{{ '/Users' if ansible_os_family == 'Darwin' else '/home' }}"
+  tags:
+    - always

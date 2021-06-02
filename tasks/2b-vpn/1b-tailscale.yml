@@ -17,7 +17,7 @@
     - tailscaled
   when: ansible_os_family != 'Debian'
 
-- name: ensure do-agent apt repository public key is installed
+- name: ensure tailscale apt repository public key is installed
   apt_key:
     url: https://pkgs.tailscale.com/stable/ubuntu/bionic.gpg
     state: present

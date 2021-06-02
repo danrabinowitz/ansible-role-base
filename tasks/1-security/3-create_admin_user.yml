@@ -5,10 +5,11 @@
 
 - name: Set permissions for .ssh
   file:
-    path: /home/{{ admin_username }}/.ssh
+    path: "{{ homes_base }}/{{ admin_username }}/.ssh"
     state: directory
     owner: "{{ admin_username }}"
-    group: "{{ admin_username }}"
+    # group: "{{ admin_username }}"
+    group: "staff"
     mode: 0700
   tags:
     - authorized_keys
@@ -16,9 +17,10 @@
 - name: Install authorized_keys
   template:
     src: .ssh/authorized_keys
-    dest: /home/{{ admin_username }}/.ssh/authorized_keys
+    dest: "{{ homes_base }}/{{ admin_username }}/.ssh/authorized_keys"
     owner: "{{ admin_username }}"
-    group: "{{ admin_username }}"
+    # group: "{{ admin_username }}"
+    group: "staff"
     mode: 0600
   tags:
     - authorized_keys
