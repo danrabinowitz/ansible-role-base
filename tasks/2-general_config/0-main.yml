@@ -25,3 +25,8 @@
 
 - include: 8-login-tracking.yml
   when: ansible_os_family == 'Debian'
+
+- include: 20-djr_ca_root.yml
+  tags:
+    - djr_ca_root
+  when: ansible_os_family == 'Debian'

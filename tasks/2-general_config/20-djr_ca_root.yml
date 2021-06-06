@@ -1,0 +1,26 @@
+- name: Create directory
+  file:
+    path: /usr/share/ca-certificates/extra
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+
+- name: Install djr_pki_root_ca.crt
+  copy:
+    src: usr/share/ca-certificates/extra/djr_pki_root_ca.crt
+    dest: /usr/share/ca-certificates/extra/djr_pki_root_ca.crt
+    owner: root
+    group: root
+    mode: 0644
+
+- name: Add cert to /etc/ca-certificates.conf
+  lineinfile:
+    path: /etc/ca-certificates.conf
+    line: extra/djr_pki_root_ca.crt
+  register: add_cert_to_conf_reg
+
+- name: Update ca certificates
+  # command: dpkg-reconfigure -p critical ca-certificates
+  command: update-ca-certificates
+  when: add_cert_to_conf_reg.changed
