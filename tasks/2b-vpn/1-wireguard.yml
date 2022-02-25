@@ -82,6 +82,8 @@
     wg_interface: "{{ 'utun0' if ansible_os_family == 'Darwin' else 'wg0' }}"
   check_mode: no
   # when: wg_interface is not defined
+  tags:
+    - wireguard-plist
 - name: wg_interface
   debug:
     msg: "{{ wg_interface }}"
@@ -188,6 +190,8 @@
     group: wheel
     mode: '0644'
   when: ansible_os_family == 'Darwin'
+  tags:
+    - wireguard-plist
 
 - name: Save and restart wg
   shell: "wg-quick save {{ wg_interface }} && wg-quick down {{ wg_interface }}; wg-quick up {{ wg_interface }} && launchctl unload /Library/LaunchDaemons/com.wireguard.{{ wg_interface }}.plist; launchctl load -w /Library/LaunchDaemons/com.wireguard.{{ wg_interface }}.plist"

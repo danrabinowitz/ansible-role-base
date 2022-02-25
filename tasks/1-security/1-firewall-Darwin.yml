@@ -154,7 +154,7 @@
 - name: Allow connections for syncthing
   lineinfile:
     path: /etc/pf.conf
-    line: 'pass in inet proto tcp from 100.64.239.8/32 to any port 22000 no state'
+    line: 'pass in inet proto tcp from 100.92.40.93/32 to any port 22000 no state'
   notify:
     - Reload pfconf
 - name: Allow connections for syncthing

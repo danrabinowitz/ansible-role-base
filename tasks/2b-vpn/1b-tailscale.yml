@@ -16,6 +16,8 @@
     - tailscale
     - tailscaled
   when: ansible_os_family != 'Debian'
+  tags:
+    - tailscale_install
 
 - name: ensure tailscale apt repository public key is installed
   apt_key:
@@ -42,6 +44,8 @@
   args:
     creates: /Library/LaunchDaemons/com.tailscale.tailscaled.plist
   when: ansible_os_family == 'Darwin'
+  tags:
+    - tailscale_install
 
 
 - name: Check if Tailscale is connected

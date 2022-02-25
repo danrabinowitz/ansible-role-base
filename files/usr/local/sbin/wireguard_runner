@@ -25,22 +25,36 @@ fi
 cnf_file="/usr/local/etc/wireguard/${wg_interface}.conf"
 
 function act {
+  >&2 echo "About to run wg-quick up on ${cnf_file}"
   wg-quick up "$cnf_file"
+  >&2 echo "Done running wg-quick up"
+  wg
 }
 
+# check returns 0 for true when wireguard is up and 1 for false when wireguard is down, per the POSIX convention. This allows:
+# if check; then
+#   echo "wireguard is up"
+# fi
 function check {
+  >&2 echo "checking wg status"
   peer_list=$(wg show all peers)
   if [ "$peer_list" = "" ]; then
-    >&2 echo "Peer list is empty which means wg failed to start."
+    >&2 echo "Peer list is empty which means wg is not connected"
     return 1
   fi
 }
 
 function run_single {
+  if check; then
+    >&2 echo "Check before act: check is true. This indicates that wireguard is up."
+    # Return 0 to indicate success
+    return 0
+  fi
+
   act
   rc=$?
   if [ $rc -ne 0 ]; then
-    >&2 echo "Error running act: exit code=$rc"
+    >&2 echo "Error running act with wg_interface=${wg_interface}: exit code=$rc"
     return $rc
   fi
 
@@ -76,9 +90,13 @@ function main {
   >&2 echo "wireguard_runner: Start"
 #   require_prerequisites
   run_loop
+  rc=$?
+  echo "run_loop completed with rc=$rc"
   >&2 echo "wireguard_runner: End"
+  return $rc
 }
 ################################################################################
 
 set +e
 main > >(tee -a /var/log/wireguard_runner.out) 2> >(tee -a /var/log/wireguard_runner.err >&2)
+sleep 20

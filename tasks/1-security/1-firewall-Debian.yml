@@ -38,6 +38,21 @@
   when: not(
           (ips_from_which_ssh_is_allowed_via_tailscale is undefined)
         )
+- name: "Security : Firewall : Allow ssh access over tailscale"
+  ufw:
+    rule: allow
+    port: ssh
+    proto: tcp
+    direction: in
+    interface: tailscale0
+    from_ip: "{{ item }}"
+  with_items: "{{ additional_ips_from_which_ssh_is_allowed_via_tailscale }}"
+  when: not(
+          (additional_ips_from_which_ssh_is_allowed_via_tailscale is undefined)
+        )
+
+
+
 
 # This is blocked by DO firewall. But could be opened for recovery purposes if wireguard fails.
 - name: "Security : Firewall : Allow ssh access from jumphost's ip. This should never be used, but is a good backup in case wireguard fails."
