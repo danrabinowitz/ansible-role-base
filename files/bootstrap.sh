@@ -164,10 +164,12 @@ if [ "$platform" = "MacOS" ]; then
   chown root /usr/local/bin
   chmod 755 /usr/local/bin
 
-  curl -fsSL https://danrabinowitz01.sfo2.digitaloceanspaces.com/bootstrap/bin/darwin-arm64/tailscale > /usr/local/bin/tailscale
+  osarch=$(echo "$(uname -s)-$(uname -m)" | tr '[:upper:]' '[:lower:]')
+
+  curl -fsSL "https://danrabinowitz01.sfo2.digitaloceanspaces.com/bootstrap/bin/${osarch}/tailscale" > /usr/local/bin/tailscale
   chmod 755 /usr/local/bin/tailscale
 
-  curl -fsSL https://danrabinowitz01.sfo2.digitaloceanspaces.com/bootstrap/bin/darwin-arm64/tailscaled > /tmp/tailscaled
+  curl -fsSL "https://danrabinowitz01.sfo2.digitaloceanspaces.com/bootstrap/bin/${osarch}/tailscaled" > /tmp/tailscaled
   chmod 755 /tmp/tailscaled
   /tmp/tailscaled install-system-daemon
   # Previous command creates /Library/LaunchDaemons/com.tailscale.tailscaled.plist which could be used to check if it worked.
