@@ -18,6 +18,8 @@
   when: (wg_etc_host_entries | length>0)
 
 # Get IP/Hostnames for tailscale from running "tailscale status"
+# WARNING: This runs on nas1. I've had some challenges sshing to nas1 via tailscale, and I've found that pinging it via the tailscale ip allows ssh to proceed.
+# So I should probably have a command to run locally which just pings nas1 on tailscale IP first
 - name: Get tailscale status info
   shell: tailscale status --json | jq -r '.Self,.Peer[] | [(.DNSName | split(".")[0] + ".vpn2.djrtechconsulting.com"), .TailAddr] | .[1]+" "+.[0]'
   delegate_to: nas1

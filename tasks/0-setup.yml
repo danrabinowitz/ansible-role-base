@@ -126,6 +126,7 @@
   check_mode: no
   tags:
     - always
+  when: ansible_os_family == 'Darwin'
 
 - name: Validate that brew is in the path
   shell: brew --prefix
@@ -145,6 +146,7 @@
   check_mode: no
   tags:
     - always
+  when: ansible_os_family == 'Darwin'
 
 - name: Ensure group "brew" exists
   group:
@@ -169,6 +171,7 @@
     name: brew
     state: present
     # gid: "472"
+  when: ansible_os_family == 'Darwin'
 
 - name: Set perms for brew directory
   ansible.builtin.file:

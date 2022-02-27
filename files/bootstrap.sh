@@ -13,13 +13,52 @@ set -u
 set -o pipefail
 
 ################################################################################
-# Define variable names
-userdata_wireguard_address="${userdata_wireguard_address:-}"
-userdata_admin_username="${userdata_admin_username:-}"
-wg_addr="${wg_addr:-}"
-allow_ssh_from_provisioner="${allow_ssh_from_provisioner:-true}"
+# Documentation and usage
+function doc {
+  >&2 cat << EOF
+This script does the following:
+
+1) Installs an ssh public key for provisioning
+2) Installs tailscale
+3) Uses a non_reusable_tailscale_auth_key, provided either via an ENV var or interactive prompt, to configure tailscale
+4) Locks down ssh completely
+5) Opens ssh from provisioner IP only, if a provisioner IP is provided via an ENV var
+6) Starts ssh service
+
+It does NOT set up wireguard, as that can be done via ansible, later.
+It does NOT install homebrew on Mac.
+EOF
+}
+
+function usage {
+  if [ "$platform" = "MacOS" ]; then
+    >&2 cat << EOF
+To bootstrap a mac:
+1) Install macOS
+2) Connect to network
+3) Create an account which will be the admin account and also used for provisioning.
+4) Open Terminal and run this script
+   curl -fsSL https://d2r.io/macos1 > run.sh
+EOF
+  else
+    echo "Use cloud init to run:"
+  fi
+  cmd_usage
+}
+
+function cmd_usage {
+  >&2 echo "provisioner_ip=[ip] [provisioner_username=[username]] bash run.sh"
+  exit 1
+}
+
 ################################################################################
-# PLATFORM
+# Define variable names
+provisioner_username="${provisioner_username:-}"
+provisioner_ip="${provisioner_ip:-}"
+provisioner_authorized_key="${provisioner_authorized_key:-ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAZ0+EyH5FgErxe7B5Vd5NT18vlaBVPC1yt9hlwGCO2J dan@mbp}"
+non_reusable_tailscale_auth_key="${non_reusable_tailscale_auth_key:-}"
+################################################################################
+# Define platform
 function get_platform() {
   if [ "$(uname -s)" = "Darwin" ]; then
     echo "MacOS"
@@ -39,158 +78,106 @@ function get_platform() {
 
 platform=$(get_platform)
 ################################################################################
-function display_steps {
-  if [ "$platform" = "MacOS" ]; then
-    echo "To bootstrap a mac:"
-    echo "1) Install macOS"
-    echo "   -> While macOS is installing, allocate an ip address for the new machine"
-    echo "2) Connect to network"
-    echo "3) Create an account which will be the admin account"
-    echo "4) Open Terminal and run this script"
-    echo "   curl -fsSL https://d2r.io/macos1 > run.sh"
-    echo "   wg_addr=a.b.c.d bash run.sh"
-  else
-    echo "Use cloud init"
-  fi
-}
-
-function usage {
-
-  # echo "userdata_admin_username=my-admin-user userdata_wireguard_address=a.b.c.d run.sh"
-  echo "USAGE: wg_addr=a.b.c.d bash run.sh"
-  echo "-----"
-  display_steps
-  exit 1
-}
-
 # Validate params
+
 # echo "Before running sudo, get the username of the current user."
-if [ -z "$userdata_admin_username" ]; then
+if [ -z "$provisioner_username" ]; then
+  >&2 echo "provisioner_username is not set. Checking to see if we can use the current user."
   user=$(whoami)
   if [ "$user" = "root" ]; then
-    echo "userdata_admin_username is required"
-    usage
+    >&2 echo "provisioner_username is required"
+    cmd_usage
   fi
-  userdata_admin_username="$user"
+  provisioner_username="$user"
 fi
-echo "Using userdata_admin_username=$userdata_admin_username"
+>&2 echo "Using provisioner_username=${provisioner_username}"
 
-if [ -z "$userdata_wireguard_address" ]; then
-  if [ -z "$wg_addr" ]; then
-    echo "wireguard address is required"
-    usage
-  fi
-  userdata_wireguard_address="$wg_addr"
-fi
-
-# TODO: Update allow_ssh_from_provisioner to take an IP address or an empty string.
-if [ ! "$allow_ssh_from_provisioner" = "true" ] && [ ! "$allow_ssh_from_provisioner" = "false" ]; then
-  echo "allow_ssh_from_provisioner must be either true or false"
-  usage
-fi
-
-echo "Be sure we're running as root"
-if [ $EUID != 0 ]; then
-  echo "Not root. Trying again with sudo..."
-  set -x
-  sudo \
-    allow_ssh_from_provisioner="$allow_ssh_from_provisioner" \
-    userdata_admin_username="$userdata_admin_username" \
-    userdata_wireguard_address="$userdata_wireguard_address" \
-    bash "$0" "$@";
-  exit "$?";
-fi
-################################################################################
-echo "Checking for home directory for ${userdata_admin_username}..."
+>&2 echo "Ensuring ${provisioner_username} has a home directory"
 if [ "$platform" = "MacOS" ]; then
-  home="/Users/${userdata_admin_username}"
+  home="/Users/${provisioner_username}"
 else
-  home="/home/${userdata_admin_username}"
+  home="/home/${provisioner_username}"
 fi
 
 if [ ! -d "${home}" ]; then
-  echo "ERROR: Home directory for ${userdata_admin_username} does not exist!"
+  >&2 echo "ERROR: Home directory ${home} for ${provisioner_username} does not exist!"
   exit 2
 fi
-################################################################################
-echo "TODO: Is there a way to lock down the firewall on MacOS before we proceed, so that only wg port is open?"
-################################################################################
-echo "Creating ssh authorized keys file..."
-mkdir -p "${home}/.ssh"
-chown "$userdata_admin_username" "${home}/.ssh"
-chmod 700 "${home}/.ssh"
-# TODO: Extract key into a variable.
-echo "ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIAZ0+EyH5FgErxe7B5Vd5NT18vlaBVPC1yt9hlwGCO2J dan@mbp" > "${home}/.ssh/authorized_keys"
-chown "$userdata_admin_username" "${home}/.ssh/authorized_keys"
-chmod 600 "${home}/.ssh/authorized_keys"
 
-echo "Installing wireguard..."
-if [ "$platform" = "MacOS" ]; then
-  echo "TODO: Explore installing wireguard-go on macOS without requiring homebrew."
-  # /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh)"
-  curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/install.sh > /tmp/brew-install.sh
-  chmod 755 /tmp/brew-install.sh
-  su - "$userdata_admin_username" -c "echo | /tmp/brew-install.sh"
-  arch=$(arch)
-  if [ "$arch" = "i386" ]; then
-    brew_exe="/usr/local/bin/brew"
-  else
-    brew_exe="/opt/homebrew/bin/brew"
-  fi
-  echo 'eval "$('"$brew_exe"' shellenv)"' >> "${HOME}/.zprofile"
-  echo 'eval "$('"$brew_exe"' shellenv)"' >> "/var/root/.profile"
-  eval "$(${brew_exe} shellenv)"
-  su - "$userdata_admin_username" -c "brew install wireguard-tools socat"
-  wg_dir="/usr/local/etc/wireguard"
-  interface="utun0"
-else
-  if [ "$platform" = "Raspbian" ]; then
-    echo "ufw is required, but not installed by default on Raspbian."
-    apt install --yes ufw
-  fi
-  # Next two lines are needed only if ubuntu <= 19.04
-  # add-apt-repository --yes ppa:wireguard/wireguard
-  # apt-get update
-  # apt install --yes wireguard-dkms wireguard-tools socat
-  apt install --yes wireguard socat
-  wg_dir="/etc/wireguard"
-  interface="wg0"
+if [ -z "$provisioner_ip" ]; then
+  >&2 echo "WARNING: provisioner_ip is not set. This will prevent ssh access from being enabled."
+  # TODO: Add a flag like "provisioner_ip='SKIP'" to allow this script to continue without ssh?
+  # For now though, just abort.
+  cmd_usage
 fi
 
-echo "Creating wireguard configuration..."
-mkdir -p "$wg_dir" && chown root:wheel "$wg_dir" && chmod 700 "$wg_dir"
-wg genkey | tee "${wg_dir}/privatekey" | wg pubkey > "${wg_dir}/publickey"
-chmod 400 "${wg_dir}/privatekey"
+# TODO: Maybe validate provisioner_ip?
 
-cat <<EOF >${wg_dir}/${interface}.conf
-[Interface]
-ListenPort = 51820
-SaveConfig = true
-Address = ${userdata_wireguard_address}
-EOF
-echo "PrivateKey = $(cat ${wg_dir}/privatekey)" >> ${wg_dir}/${interface}.conf
-cat <<EOF >>${wg_dir}/${interface}.conf
+################################################################################
+# echo "Be sure we're running as root"
+if [ $EUID != 0 ]; then
+  >&2 echo "Not root. Trying again with sudo..."
+  # set -x
+  sudo \
+    provisioner_username="$provisioner_username" \
+    provisioner_ip="$provisioner_ip" \
+    provisioner_authorized_key="$provisioner_authorized_key" \
+    non_reusable_tailscale_auth_key="$non_reusable_tailscale_auth_key" \
+    bash "$0" "$@";
+  exit "$?";
+fi
 
-[Peer]
-PublicKey = pz/hyQ8EKY7nSoaCFAgd7SIl3SFDnrb02CT32VksTg8=
-AllowedIPs = 192.168.192.1
+################################################################################
+################################################################################
+>&2 echo "TODO: Is there a way to lock down the firewall on MacOS before we proceed, so that only wg port is open?"
 
-[Peer]
-PublicKey = jpaV3qj/LsumpaWiF/JMBslEPKx38Tdn+CFuOpgic1w=
-AllowedIPs = 192.168.192.2
-EOF
+################################################################################
+# umask
+umask 077
 
+################################################################################
+>&2 echo "Creating ssh authorized keys file..."
+
+mkdir -p "${home}/.ssh"
+chown "$provisioner_username" "${home}/.ssh"
+chmod 700 "${home}/.ssh"
+
+echo "${provisioner_authorized_key}" > "${home}/.ssh/authorized_keys"
+chown "$provisioner_username" "${home}/.ssh/authorized_keys"
+chmod 600 "${home}/.ssh/authorized_keys"
+
+################################################################################
+
+if [ -z "$non_reusable_tailscale_auth_key" ]; then
+  read -erp 'Non-reusable tailscale auth key: ' non_reusable_tailscale_auth_key
+fi
+
+>&2 echo "Installing tailscale..."
 if [ "$platform" = "MacOS" ]; then
-  echo "Sharing public key on wg port. Run this command to get it:"
+  >&2 echo "There are three tailscale variants on MacOS per https://tailscale.com/kb/1065/macos-variants/"
+  >&2 echo "Here we use the 'tailscaled' variant."
+  >&2 echo "The Mac App Store version has more features and auto-updates, but it can't run until you log in."
+  >&2 echo "For some use cases, such as testing MacOS installs, this is not desirable."
 
-  ip=$(ifconfig -au inet | grep inet | grep -v 127.0.0.1 | awk '{print $2}' | head -1)
-  # ip=$(ifconfig en1 | grep 'inet ' | awk '{print $2}')
-  echo "echo | socat udp4:${ip}:51820 -"
-  cat ${wg_dir}/publickey| socat -u STDIN udp4-listen:51820
-  echo "Shared. Now starting wg..."
-  wg-quick up utun0
+  # Installation instructions for tailscaled variant: https://github.com/tailscale/tailscale/wiki/Tailscaled-on-macOS
+  curl -fsSL https://danrabinowitz01.sfo2.digitaloceanspaces.com/bootstrap/bin/darwin-arm64/tailscale > /usr/local/bin/tailscale
+  chmod 755 /usr/local/bin/tailscale
 
-  echo "Block ssh"
+  curl -fsSL https://danrabinowitz01.sfo2.digitaloceanspaces.com/bootstrap/bin/darwin-arm64/tailscaled > /tmp/tailscaled
+  chmod 755 /tmp/tailscaled
+  /tmp/tailscaled install-system-daemon
+  # Previous command creates /Library/LaunchDaemons/com.tailscale.tailscaled.plist which could be used to check if it worked.
+
+  tailscale up --authkey="$non_reusable_tailscale_auth_key"
+else
+  >&2 echo "Not implemented yet"
+  # curl -fsSL https://tailscale.com/install.sh | sh
+  exit 3
+fi
+
+################################################################################
+>&2 echo "Tightening and enabling firewall..."
+if [ "$platform" = "MacOS" ]; then
   cat <<EOS >/etc/pf.conf
 
 anchor "com.djrtechconsulting/*"
@@ -206,24 +193,26 @@ EOS
   cat <<EOS >/etc/pf.rules/pfssh.rule
 block return in proto tcp from any to any port 22
 EOS
-  if [ "$allow_ssh_from_provisioner" = "true" ]; then
+
+  if [ -n "$provisioner_ip" ]; then
     cat <<EOS >>/etc/pf.rules/pfssh.rule
-pass in inet proto tcp from 192.168.192.1/32 to any port 22 no state
+pass in inet proto tcp from ${provisioner_ip}/32 to any port 22 no state
 EOS
   fi
-  pfctl -f /etc/pf.conf && pfctl -E
-  echo "Starting ssh"
-  systemsetup -setremotelogin on
-  echo "1) Update 'public_keys'"
-  echo "2) Remove any old keys for this host."
-  echo "3) Run 'make provisioner-wireguard'"
-  echo "4) Provision the new macOS machine."
-else
-  ufw allow 51820/udp
 
-  cat ${wg_dir}/publickey| socat -u STDIN udp4-listen:51820
-  service wg-quick@${interface} start
-  systemctl enable wg-quick@${interface}
+  >&2 echo "Enabling firewall..."
+  pfctl -f /etc/pf.conf && pfctl -E
+
+  >&2 echo "Maybe run 'pfctl -sa' to check firewall rules"
+
+  >&2 echo "Starting ssh..."
+  systemsetup -setremotelogin on
+
+else
+  >&2 echo "Not implemented yet"
+  exit 3
+
+  ufw allow 51820/udp
 fi
 
-echo "Done"
+echo "Done. Proceed with provisioning."

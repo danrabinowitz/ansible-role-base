@@ -40,9 +40,15 @@
   become_user: "{{ admin_username }}"
   when: ansible_os_family == 'Darwin'
 
+- name: Install jq homebrew package
+  package:
+    name: jq
+    # state: latest
+  when: ansible_os_family != 'Darwin'
 
 - name: Get tailscale IP
-  shell: tailscale status --json | jq -r '.Self.TailAddr'
+  # shell: tailscale status --json | jq -r '.Self.TailAddr'
+  shell: tailscale status --json | jq -r '.TailscaleIPs[]' | grep -P '\d{1,3}\.\d{1,3}\.\d{1,3}\.\d{1,3}'
   register: tailscale_ip_v4_reg
   changed_when: false
   check_mode: no
