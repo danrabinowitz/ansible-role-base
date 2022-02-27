@@ -160,7 +160,7 @@ if [ "$platform" = "MacOS" ]; then
   >&2 echo "For some use cases, such as testing MacOS installs, this is not desirable."
 
   # Installation instructions for tailscaled variant: https://github.com/tailscale/tailscale/wiki/Tailscaled-on-macOS
-  mkdir /usr/local/bin
+  mkdir -p /usr/local/bin
   chown root /usr/local/bin
   chmod 755 /usr/local/bin
 
