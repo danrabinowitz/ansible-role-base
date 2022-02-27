@@ -159,12 +159,21 @@ if [ "$platform" = "MacOS" ]; then
   >&2 echo "The Mac App Store version has more features and auto-updates, but it can't run until you log in."
   >&2 echo "For some use cases, such as testing MacOS installs, this is not desirable."
 
+set -x
+
   # Installation instructions for tailscaled variant: https://github.com/tailscale/tailscale/wiki/Tailscaled-on-macOS
   mkdir -p /usr/local/bin
   chown root /usr/local/bin
   chmod 755 /usr/local/bin
 
-  osarch=$(echo "$(uname -s)-$(uname -m)" | tr '[:upper:]' '[:lower:]')
+  os=$(uname -s | tr '[:upper:]' '[:lower:]')
+
+  if [ "$(uname -m)" = "x86_64" ]; then
+    arch="amd64"
+  fi
+
+  # osarch=$(echo "$(uname -s)-$(uname -m)" | tr '[:upper:]' '[:lower:]')
+  osarch="$os-$arch"
 
   curl -fsSL "https://danrabinowitz01.sfo2.digitaloceanspaces.com/bootstrap/bin/${osarch}/tailscale" > /usr/local/bin/tailscale
   chmod 755 /usr/local/bin/tailscale
