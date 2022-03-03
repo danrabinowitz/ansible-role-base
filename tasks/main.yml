@@ -1,4 +1,6 @@
 - include: 0-setup.yml
+  tags:
+    - arb-setup
 
 - include: 1-security/0-main.yml
 

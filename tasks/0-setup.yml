@@ -4,6 +4,7 @@
       - admin_username is defined
     fail_msg: "One or more required variables are missing."
 
+# TODO: Make this part of the docker image
 - name: Create ssh control directory if it does not exist
   local_action:
     module: file
@@ -35,20 +36,6 @@
   tags:
     - always
 
-# ansible_host_public_ip is needed for the firewall and for .google_authenticator
-- name: "setup : Get public IP address"
-  ipify_facts:
-    timeout: 10
-  register: ansible_host_public_ip
-  delegate_to: localhost
-  run_once: true
-  changed_when: false
-  check_mode: no
-
-- name: "setup : Set ansible_host_public_ip"
-  set_fact:
-     ansible_host_public_ip: "{{ ansible_host_public_ip.ansible_facts.ipify_public_ip }}"
-
 - name: Collect only facts needed for ansible-role-base
   setup:
     gather_subset:
@@ -60,7 +47,7 @@
 - name: Debug ansible_os_family
   debug:
     var: ansible_os_family
-    # verbosity: "1"
+    verbosity: 1
   check_mode: no
   tags:
     - always
@@ -69,6 +56,7 @@
 #   fail:
 #     msg: Dan fail
 
+# Is this really needed for MacOS?
 - name: "setup : Set wheel_group"
   set_fact:
      wheel_group: "{{ 'wheel' if ansible_os_family == 'Darwin' else 'wheel' }}"
@@ -97,18 +85,22 @@
 - name: Print ansible_architecture
   ansible.builtin.debug:
     var: ansible_architecture
+    verbosity: 1
   tags:
     - always
 
 - name: "setup : apple rosetta"
   set_fact:
      apple_rosetta_cmd: "{{ 'arch -x86_64 ' if ansible_os_family == 'Darwin' and ansible_architecture == 'arm64' else '' }}"
+  when: ansible_os_family == 'Darwin'
   tags:
     - always
 
 - name: Print apple_rosetta_cmd
   ansible.builtin.debug:
     var: apple_rosetta_cmd
+    verbosity: 1
+  when: ansible_os_family == 'Darwin'
   tags:
     - always
 

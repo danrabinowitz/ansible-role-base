@@ -15,6 +15,9 @@
 - name: "homebrew : install dir"
   set_fact:
      homebrew_install_dir: "/Users/{{ admin_username }}/.homebrew"
+  check_mode: no
+  tags:
+    - always
 
 - name: Create install dir
   file:
@@ -34,16 +37,17 @@
 - name: "setup : homebrew prefix"
   set_fact:
      homebrew_prefix: "{{ homebrew_install_dir }}"
+  check_mode: no
+  tags:
+    - always
 
 - name: Debug homebrew_prefix
   debug:
     var: homebrew_prefix
-    verbosity: 1
+    verbosity: 0
   check_mode: no
-  tags:
-    - always
-  when: ansible_os_family == 'Darwin'
 
+# TODO: Can I overwrite ansible_env.PATH?
 - name: Validate that brew is in the path
   shell: brew --prefix
   environment:
@@ -51,22 +55,17 @@
   check_mode: no
   changed_when: false
   register: brew_prefix_reg
-  # tags:
-  #   - always
 
 - name: Debug brew_prefix_reg
   debug:
     var: brew_prefix_reg
-    # verbosity: "1"
+    verbosity: 0
   check_mode: no
-  tags:
-    - always
 
 # OS X Command line tools are required to use homebrew
 - name: Run elliotweiser.osx-command-line-tools
   include_role:
     name: elliotweiser.osx-command-line-tools
-
 
 # brew doctor complains if git is not installed.
 - name: Install git homebrew package
