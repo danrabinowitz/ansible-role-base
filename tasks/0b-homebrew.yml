@@ -1,0 +1,83 @@
+# Let's install homebrew.
+# There are a few options:
+# 1) Install it globally, and have it owned by the admin user
+# 2) Install it globally, and have it owned by the custom user
+# 3) Install it separately for each user
+# I had trouble with 1.
+# Even if option 2 were the best idea, it is challenging in this bootstrapping phase since we don't have a custom user yet.
+# So let's try option 3.
+# ref https://stackoverflow.com/a/59691631
+# ref https://docs.brew.sh/Installation#multiple-installations
+# I had high hopes for this one, but it never worked well enough: https://medium.com/@leifhanack/homebrew-multi-user-setup-e10cb5849d59
+
+# So we'll install it for the admin user here.
+
+- name: "homebrew : install dir"
+  set_fact:
+     homebrew_install_dir: "/Users/{{ admin_username }}/.homebrew"
+
+- name: Create install dir
+  file:
+    path: "{{ homebrew_install_dir }}"
+    state: directory
+    owner: "{{ admin_username }}"
+    group: "staff"
+    mode: 0700
+
+- name: Install homebrew for the admin user in ~/.homebrew
+  shell: curl -L https://github.com/Homebrew/brew/tarball/master | tar xz --strip 1 -C "{{ homebrew_install_dir }}"
+  become: true
+  become_user: "{{ admin_username }}"
+  args:
+    creates: "{{ homebrew_install_dir }}/Library"
+
+- name: "setup : homebrew prefix"
+  set_fact:
+     homebrew_prefix: "{{ homebrew_install_dir }}"
+
+- name: Debug homebrew_prefix
+  debug:
+    var: homebrew_prefix
+    verbosity: 1
+  check_mode: no
+  tags:
+    - always
+  when: ansible_os_family == 'Darwin'
+
+- name: Validate that brew is in the path
+  shell: brew --prefix
+  environment:
+    PATH: "{{ homebrew_prefix }}/bin:{{ homebrew_prefix }}/sbin:{{ ansible_env.PATH }}"
+  check_mode: no
+  changed_when: false
+  register: brew_prefix_reg
+  # tags:
+  #   - always
+
+- name: Debug brew_prefix_reg
+  debug:
+    var: brew_prefix_reg
+    # verbosity: "1"
+  check_mode: no
+  tags:
+    - always
+
+# OS X Command line tools are required to use homebrew
+- name: Run elliotweiser.osx-command-line-tools
+  include_role:
+    name: elliotweiser.osx-command-line-tools
+
+
+# brew doctor complains if git is not installed.
+- name: Install git homebrew package
+  homebrew:
+    name: git
+  environment:
+    PATH: "{{ homebrew_prefix }}/bin:{{ homebrew_prefix }}/sbin:{{ ansible_env.PATH }}"
+  become: true
+  become_user: "{{ admin_username }}"
+
+
+
+
+# Maybe run brew doctor ?

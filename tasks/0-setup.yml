@@ -112,78 +112,15 @@
   tags:
     - always
 
-- name: "setup : homebrew prefix"
-  set_fact:
-     homebrew_prefix: "{{ '/opt/homebrew' if ansible_architecture == 'arm64' else '/usr/local' }}"
-  when: ansible_os_family == 'Darwin' and (homebrew_prefix is not defined)
-  tags:
-    - always
-
-- name: Debug homebrew_prefix
-  debug:
-    var: homebrew_prefix
-    # verbosity: "1"
-  check_mode: no
-  tags:
-    - always
-  when: ansible_os_family == 'Darwin'
-
-- name: Validate that brew is in the path
-  shell: brew --prefix
-  environment:
-    PATH: "{{ homebrew_prefix }}/bin:{{ homebrew_prefix }}/sbin:{{ ansible_env.PATH }}"
-  when: ansible_os_family == 'Darwin'
-  check_mode: no
-  changed_when: false
-  register: brew_prefix_reg
-  tags:
-    - always
-
-- name: Debug brew_prefix_reg
-  debug:
-    var: brew_prefix_reg
-    # verbosity: "1"
-  check_mode: no
-  tags:
-    - always
-  when: ansible_os_family == 'Darwin'
-
-- name: Ensure group "brew" exists
-  group:
-    name: brew
-    state: present
-    # gid: "472"
-  when: ansible_os_family == 'Darwin'
-
-- name: Set perms for brew directory
-  ansible.builtin.file:
-    path: "{{ homebrew_prefix }}"
-    state: directory
-    recurse: yes
-    group: brew
-    mode: g+w
-  when: ansible_os_family == 'Darwin' and (homebrew_prefix != "/usr/local")
-  # tags:
-  #   - always
-
-- name: Ensure group "brew" exists
-  group:
-    name: brew
-    state: present
-    # gid: "472"
-  when: ansible_os_family == 'Darwin'
-
-- name: Set perms for brew directory
-  ansible.builtin.file:
-    path: "{{ homebrew_prefix }}"
-    state: directory
-    recurse: yes
-    group: brew
-    mode: g+w
-  when: ansible_os_family == 'Darwin' and (homebrew_prefix != "/usr/local")
-
 - name: "setup : homes_base"
   set_fact:
      homes_base: "{{ '/Users' if ansible_os_family == 'Darwin' else '/home' }}"
   tags:
     - always
+
+# homebrew is used for:
+# jq (which is used to get tailscale IPs)
+- include: 0b-homebrew.yml
+  tags:
+    - homebrew
+  when: ansible_os_family == 'Darwin' and use_homebrew

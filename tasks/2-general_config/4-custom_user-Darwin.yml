@@ -128,8 +128,8 @@
 #   command: pwpolicy -u "{{ custom_admin_user }}" -setpolicy "newPasswordRequired=1"
 #   when: add_custom_admin_user_reg.changed
 
-- name: Adding user
-  user:
-    name: "{{ custom_username }}"
-    groups: brew
-    append: yes
+# - name: Adding user
+#   user:
+#     name: "{{ custom_username }}"
+#     groups: brew
+#     append: yes

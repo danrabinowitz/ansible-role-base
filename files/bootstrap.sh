@@ -172,7 +172,6 @@ set -x
     arch="amd64"
   fi
 
-  # osarch=$(echo "$(uname -s)-$(uname -m)" | tr '[:upper:]' '[:lower:]')
   osarch="$os-$arch"
 
   curl -fsSL "https://danrabinowitz01.sfo2.digitaloceanspaces.com/bootstrap/bin/${osarch}/tailscale" > /usr/local/bin/tailscale
@@ -221,6 +220,7 @@ EOS
   >&2 echo "Maybe run 'pfctl -sa' to check firewall rules"
 
   >&2 echo "Starting ssh..."
+  >&2 echo "WARNING: Turning Remote Login on requires Full Disk Access privilges on Catalina (10.15) or later. ref: https://support.apple.com/en-us/HT210595"
   systemsetup -setremotelogin on
 
 else

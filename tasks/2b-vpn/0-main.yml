@@ -1,6 +1,7 @@
 - include: 1-wireguard.yml
   tags:
     - wireguard
+  when: use_wireguard
 
 - include: 1b-tailscale.yml
   tags:

@@ -40,8 +40,9 @@
 #     line: 'export PATH="${PATH}:/usr/local/bin"'
 
 
-- name: Adding user to group
-  user:
-    name: "{{ admin_username }}"
-    groups: brew
-    append: yes
+# - name: Adding user to group
+#   user:
+#     name: "{{ admin_username }}"
+#     groups: brew
+#     append: yes
+#   when: use_homebrew | default(True)

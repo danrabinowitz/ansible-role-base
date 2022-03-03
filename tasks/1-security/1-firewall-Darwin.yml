@@ -322,33 +322,38 @@
   changed_when: false
   become: true
   become_user: "{{ admin_username }}"
+  when: use_wireguard
 
 - name: Debug wireguard_go_path_reg
   debug:
     var: wireguard_go_path_reg
     # verbosity: "1"
   check_mode: no
+  when: use_wireguard
 
 - name: Check if wireguard if allowed in the Application Firewall (ALF)
   shell: "/usr/libexec/ApplicationFirewall/socketfilterfw --listapps | grep -c '{{ wireguard_go_path_reg.stdout }}' || true"
   register: alf_wireguard_reg
   check_mode: no
   changed_when: false
+  when: use_wireguard
 
 - set_fact:
     alf_wireguard_allowed: "{{ alf_wireguard_reg.stdout == '1' }}"
   check_mode: no
+  when: use_wireguard
 
 - name: Debug alf_wireguard_allowed
   debug:
     var: alf_wireguard_allowed
     # verbosity: "1"
   check_mode: no
+  when: use_wireguard
 
 - name: Unblock wireguard for the Application Firewall (ALF)
   # shell: "/usr/libexec/ApplicationFirewall/socketfilterfw --unblockapp {{ wireguard_go_path_reg.stdout }}"
   shell: "/usr/libexec/ApplicationFirewall/socketfilterfw --add {{ wireguard_go_path_reg.stdout }}"
-  when: not alf_wireguard_allowed
+  when: use_wireguard and (not alf_wireguard_allowed)
 
 
 
