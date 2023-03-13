@@ -55,7 +55,7 @@
   check_mode: no
   failed_when: false
   environment:
-    PATH: "{{ homebrew_prefix | default('') }}/bin:{{ homebrew_prefix  | default('') }}/sbin:/usr/local/sbin:/usr/local/bin:{{ ansible_env.PATH }}"
+    PATH: "{{ homebrew_prefix | default('') }}/bin:/usr/local/sbin:/usr/local/bin:{{ ansible_env.PATH }}"
 
 - name: Tailscale Status
   debug:
@@ -78,7 +78,7 @@
   # So we are ok not quoting the variables
   command: tailscale up --authkey={{ tailscale_auth_key.user_input }} {{ tailscale_args | default() }}
   environment:
-    PATH: "{{ homebrew_prefix | default('') }}/bin:{{ homebrew_prefix  | default('') }}/sbin:/usr/local/sbin:/usr/local/bin:{{ ansible_env.PATH }}"
+    PATH: "{{ homebrew_prefix | default('') }}/bin:/usr/local/sbin:/usr/local/bin:{{ ansible_env.PATH }}"
   # Since the auth key is included in this task, we do not want to log output
   # no_log: true
   register: tailscale_start

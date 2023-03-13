@@ -91,7 +91,7 @@
 
 - name: "setup : apple rosetta"
   set_fact:
-     apple_rosetta_cmd: "{{ 'arch -x86_64 ' if ansible_os_family == 'Darwin' and ansible_architecture == 'arm64' else '' }}"
+    apple_rosetta_cmd: "{{ 'arch -x86_64 ' if ansible_os_family == 'Darwin' and ansible_architecture == 'arm64' else '' }}"
   when: ansible_os_family == 'Darwin'
   tags:
     - always
@@ -110,8 +110,35 @@
   tags:
     - always
 
+
+# Detect virtualbox (vm check)
+- name: Get system firmware version
+  shell: "system_profiler SPHardwareDataType | grep 'System Firmware Version' | cut -d: -f2- | sed 's/^ //'"
+  check_mode: no
+  changed_when: false
+  register: system_firmware_version_reg
+  when: ansible_os_family == 'Darwin'
+  tags:
+    - vmcheck
+    - always
+- name: "set vmguest"
+  set_fact:
+    vmguest: "{{ system_firmware_version_reg.stdout == 'VirtualBox' }}"
+  check_mode: no
+  when: ansible_os_family == 'Darwin'
+  tags:
+    - vmcheck
+    - always
+- name: Print vmguest
+  ansible.builtin.debug:
+    var: vmguest
+    verbosity: 1
+  tags:
+    - vmcheck
+
 # homebrew is used for:
-# jq (which is used to get tailscale IPs)
+# wireguard (in 1-security/1-firewall-Darwin)
+# prometheus node-exporter (in 2-general_config/6-prometheus_monitoring-Darwin.yml)
 - include: 0b-homebrew.yml
   tags:
     - homebrew

@@ -12,7 +12,7 @@
 - name: Debug fdesetup_bool
   debug:
     var: fdesetup_bool
-    # verbosity: "1"
+    verbosity: 0
   check_mode: no
 
 # - name: Enable disk encryption

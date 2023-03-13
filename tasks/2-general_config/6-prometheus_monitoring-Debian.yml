@@ -7,18 +7,18 @@
     install_recommends: no
 
 # /usr/bin/prometheus-node-exporter
-- name: Install newer prometheus-node-exporter
-  copy:
-    src: usr/bin/prometheus-node-exporter
-    dest: /usr/bin/prometheus-node-exporter
-    owner: root
-    group: root
-    mode: 0755
-  notify:
-    - Restart prometheus-node-exporter Debian
+# - name: Install newer prometheus-node-exporter
+#   copy:
+#     src: usr/bin/prometheus-node-exporter
+#     dest: /usr/bin/prometheus-node-exporter
+#     owner: root
+#     group: root
+#     mode: 0755
+#   notify:
+#     - Restart prometheus-node-exporter Debian
 
 # TODO: Remove this!
-- name: "Allow access to node exporter from prometheus server's public ip only and only via eth0"
+- name: "Remove access to node exporter from prometheus server's public ip only and only via eth0"
   ufw:
     rule: allow
     port: "9100"
@@ -36,6 +36,15 @@
     from_ip: "10.0.0.1"
     direction: in
     interface: wg0
+
+- name: "Allow access to node exporter from prometheus server's vpn ip only and only via tailscale"
+  ufw:
+    rule: allow
+    port: "9100"
+    proto: tcp
+    from_ip: "100.69.64.28"
+    direction: in
+    interface: tailscale0
 
 - name: Update /etc/init.d/prometheus-node-exporter to use textfile_collector
   copy:
@@ -57,46 +66,46 @@
   notify:
     - Restart prometheus-node-exporter Debian
 
-- name: Install node-exporter-shell
-  copy:
-    src: node-exporter-shell.sh
-    dest: /usr/local/sbin/node-exporter-shell
-    owner: root
-    group: root
-    mode: 0755
-  tags:
-    - node-exporter-shell
+# - name: Install node-exporter-shell
+#   copy:
+#     src: node-exporter-shell.sh
+#     dest: /usr/local/sbin/node-exporter-shell
+#     owner: root
+#     group: root
+#     mode: 0755
+#   tags:
+#     - node-exporter-shell
 
-- name: Create custom metrics dirs
-  file:
-    path: "/usr/local/bin/{{ item }}"
-    state: directory
-    owner: root
-    group: root
-    mode: 0755
-  with_items:
-    - node-exporter-shell
-    - node-exporter-shell/metrics-scripts
+# - name: Create custom metrics dirs
+#   file:
+#     path: "/usr/local/bin/{{ item }}"
+#     state: directory
+#     owner: root
+#     group: root
+#     mode: 0755
+#   with_items:
+#     - node-exporter-shell
+#     - node-exporter-shell/metrics-scripts
 
-- name: "Allow access to node-exporter-shell from prometheus server's vpn ip only and only via vpn"
-  ufw:
-    rule: allow
-    port: "9806"
-    proto: tcp
-    from_ip: "10.0.0.1"
-    direction: in
-    interface: wg0
+# - name: "Allow access to node-exporter-shell from prometheus server's vpn ip only and only via vpn"
+#   ufw:
+#     rule: allow
+#     port: "9806"
+#     proto: tcp
+#     from_ip: "10.0.0.1"
+#     direction: in
+#     interface: wg0
 
-# Start node-exporter-shell on bootup and keep it running
-- name: Install node-exporter-shell service
-  copy:
-    src: lib/systemd/system/node-exporter-shell.service
-    dest: /lib/systemd/system/
-    owner: root
-    group: root
-    mode: '0644'
-# - name: Enable node-exporter-shell
-#   systemd:
-#     name: "node-exporter-shell"
-#     enabled: yes
-#     state: started
+# # Start node-exporter-shell on bootup and keep it running
+# - name: Install node-exporter-shell service
+#   copy:
+#     src: lib/systemd/system/node-exporter-shell.service
+#     dest: /lib/systemd/system/
+#     owner: root
+#     group: root
+#     mode: '0644'
+# # - name: Enable node-exporter-shell
+# #   systemd:
+# #     name: "node-exporter-shell"
+# #     enabled: yes
+# #     state: started

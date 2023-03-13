@@ -3,10 +3,9 @@
     name: node_exporter
     state: latest
     # update_homebrew: true
-  environment:
-    PATH: "{{ homebrew_prefix }}/bin:{{ homebrew_prefix }}/sbin:{{ ansible_env.PATH }}"
+    path: "{{ homebrew_prefix }}/bin"
   become: true
-  become_user: "{{ admin_username }}"
+  become_user: "{{ homebrew_user }}"
 
 - name: Block all node exporter connections by default
   lineinfile:
@@ -42,17 +41,17 @@
 - name: Get node_exporter path
   shell: echo "$(brew --cellar node_exporter)/$(brew list --versions node_exporter | awk '{print $2}')/bin/node_exporter"
   environment:
-    PATH: "{{ homebrew_prefix }}/bin:{{ homebrew_prefix }}/sbin:{{ ansible_env.PATH }}"
+    PATH: "{{ homebrew_prefix }}/bin:{{ ansible_env.PATH }}"
   register: node_exporter_path_reg
   check_mode: no
   changed_when: false
   become: true
-  become_user: "{{ admin_username }}"
+  become_user: "{{ homebrew_user }}"
 
 - name: Debug node_exporter_path_reg
   debug:
     var: node_exporter_path_reg
-    # verbosity: "1"
+    verbosity: 2
   check_mode: no
 
 - name: Check if prometheus-node-exporter if allowed in the Application Firewall (ALF)
@@ -68,7 +67,7 @@
 - name: Debug alf_exporter_allowed
   debug:
     var: alf_exporter_allowed
-    # verbosity: "1"
+    verbosity: 2
   check_mode: no
 
 - name: Unblock prometheus-node-exporter for the Application Firewall (ALF)
@@ -101,6 +100,14 @@
 #   notify:
 #     - Restart prometheus-node-exporter Darwin
 
+- name: Create /usr/local/etc dir
+  file:
+    path: /usr/local/etc
+    state: directory
+    owner: root
+    group: wheel
+    mode: 0755
+
 - name: Fix args for prometheus-node-exporter
   copy:
     src: macos/usr/local/etc/node_exporter.args
@@ -115,9 +122,7 @@
   file:
     path: "/usr/local/sbin"
     state: directory
-    # owner: "{{ admin_username }}"
     owner: root
-    # group: admin
     group: wheel
     mode: 0755
 
@@ -141,12 +146,12 @@
 - name: Get socat path
   shell: echo "$(brew --cellar socat)/$(brew list --versions socat | awk '{print $2}')/bin/socat"
   environment:
-    PATH: "{{ homebrew_prefix }}/bin:{{ homebrew_prefix }}/sbin:{{ ansible_env.PATH }}"
+    PATH: "{{ homebrew_prefix }}/bin:{{ ansible_env.PATH }}"
   register: socat_path_reg
   check_mode: no
   changed_when: false
   become: true
-  become_user: "{{ admin_username }}"
+  become_user: "{{ homebrew_user }}"
 
 - name: Debug socat_path_reg
   debug:
@@ -232,7 +237,7 @@
 - name: Debug alf_tmm_exporter_allowed
   debug:
     var: alf_tmm_exporter_allowed
-    # verbosity: "1"
+    verbosity: 2
   check_mode: no
 
 - name: Unblock time-machine-metadata-exporter for the Application Firewall (ALF)

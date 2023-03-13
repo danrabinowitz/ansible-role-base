@@ -1,21 +1,56 @@
-# - set_fact:
-#     wg_dir: "/usr/local/etc/wireguard"
-#   when: ansible_os_family == 'Darwin'
-# - set_fact:
-#     wg_dir: "/etc/wireguard"
-#   when: ansible_os_family == 'Debian'
-# - name: Set perms for wg dir
-#   file:
-#     path: "{{ wg_dir }}"
-#     owner: root
-#     group: "{{ wheel_group }}"
-#     mode: '0700'
-# - name: Set perms for wg private key
-#   file:
-#     path: "{{ wg_dir }}/privatekey"
-#     owner: root
-#     group: "{{ wheel_group }}"
-#     mode: '0400'
+- name: Install wireguard homebrew package
+  homebrew:
+    name: ['wireguard-go', 'wireguard-tools']
+    path: "{{ homebrew_prefix }}/bin"
+  become: true
+  become_user: "{{ admin_username }}"
+  async: 7200
+  poll: 0
+  register: homebrew_wireguard
+  when: not ansible_check_mode
+- name: 'homebrew_wireguard - wait for async task'
+  async_status:
+    jid: "{{ homebrew_wireguard.ansible_job_id }}"
+  register: job_result_homebrew_wireguard
+  until: job_result_homebrew_wireguard.finished
+  become: true
+  become_user: "{{ admin_username }}"
+  retries: 800
+  delay: 10
+  when: not ansible_check_mode
+
+
+- set_fact:
+    wg_dir: "/etc/wireguard"
+  when: wg_dir is not defined
+
+- name: Create dir
+  file:
+    path: "{{ wg_dir }}"
+    state: directory
+    owner: root
+    group: wheel
+    mode: 0700
+
+- set_fact:
+    path: "{{ ansible_env.PATH }}"
+  check_mode: no
+- set_fact:
+    path: "{{ homebrew_prefix }}/bin:{{ ansible_env.PATH }}"
+  check_mode: no
+  when: ansible_os_family == 'Darwin'
+- name: Print path
+  ansible.builtin.debug:
+    var: path
+    verbosity: 0
+
+- set_fact:
+    wg_interface: wg0
+  check_mode: no
+- set_fact:
+    wg_interface: utun0
+  check_mode: no
+  when: ansible_os_family == 'Darwin'
 
 - set_fact:
     wireguard_peer_machine_names: "{{ wireguard_peer_machine_names_core | union(wireguard_peer_machine_names_additional_for_group) | difference( [ hostvars[inventory_hostname]['do_name'] ] ) }}"
@@ -46,52 +81,69 @@
 - name: wireguard_ip_of_current_host
   debug:
     msg: "{{ wireguard_ip_of_current_host }}"
-    # verbosity: "1"
+    verbosity: 0
   check_mode: no
 
-
-- set_fact:
-    path: "{{ ansible_env.PATH }}"
-  check_mode: no
-- set_fact:
-    path: "{{ homebrew_prefix }}/bin:{{ homebrew_prefix }}/sbin:{{ ansible_env.PATH }}"
-  check_mode: no
-  when: ansible_os_family == 'Darwin'
-
-
-- name: Get wg interface - real
-  shell: "wg | grep '^interface: ' | cut -d' ' -f2"
+- name: Generate key
+  shell: wg genkey | tee "{{ wg_dir }}/privatekey" | wg pubkey > "{{ wg_dir }}/publickey" && printf "[Interface]\nListenPort = 51820\nSaveConfig = true\nAddress = {{ wireguard_ip_of_current_host }}\n\nPrivateKey = " > "{{ wg_dir }}/{{ wg_interface }}.conf" && cat "{{ wg_dir }}/privatekey" >> "{{ wg_dir }}/{{ wg_interface }}.conf" && printf "\n\n[Peer]\nPublicKey = pz/hyQ8EKY7nSoaCFAgd7SIl3SFDnrb02CT32VksTg8=\nAllowedIPs = 192.168.192.1\n\n[Peer]\nPublicKey = jpaV3qj/LsumpaWiF/JMBslEPKx38Tdn+CFuOpgic1w=\nAllowedIPs = 192.168.192.2\n" >> "{{ wg_dir }}/{{ wg_interface }}.conf"
   environment:
     PATH: "{{ path }}"
-  changed_when: false
-  check_mode: no
-  register: wg_interface_real_reg
+  args:
+    creates: "{{ wg_dir }}/privatekey"
+  register: install_wg_cfg
+- name: Set wg private key perms
+  file:
+    path: "{{ wg_dir }}/privatekey"
+    owner: root
+    group: wheel
+    mode: '0400'
+- name: Set wg conf perms
+  file:
+    path: "{{ wg_dir }}/{{ wg_interface }}.conf"
+    owner: root
+    group: wheel
+    mode: '0400'
 
-- set_fact:
-    wg_interface_real: "{{ wg_interface_real_reg.stdout }}"
-  check_mode: no
-  when: wg_interface_real is not defined
 
-- name: wg_interface_real
-  debug:
-    msg: "{{ wg_interface_real }}"
-    # verbosity: "1"
-  check_mode: no
 
-- set_fact:
-    wg_interface: "{{ 'utun0' if ansible_os_family == 'Darwin' else 'wg0' }}"
-  check_mode: no
-  # when: wg_interface is not defined
-  tags:
-    - wireguard-plist
-- name: wg_interface
-  debug:
-    msg: "{{ wg_interface }}"
-    # verbosity: "1"
-  check_mode: no
+
+# - name: Install wg config
+#   template:
+#     src: wireguard/config.conf.j2
+#     dest: "{{ wg_dir }}/{{ wg_interface }}.conf"
+#     owner: root
+#     group: wheel
+#     mode: '0400'
+#     force: no
+#   register: install_wg_cfg
+#   # wg_private_key
+
+- name: Start wg
+  shell: "wg-quick up {{ wg_interface }}"
+  environment:
+    PATH: "{{ path }}"
+  when: install_wg_cfg.changed
+
+
+
+
+
+
+
+# - set_fact:
+#     wg_interface: "{{ 'utun0' if ansible_os_family == 'Darwin' else 'wg0' }}"
+#   check_mode: no
+#   # when: wg_interface is not defined
+#   tags:
+#     - wireguard-plist
+# - name: wg_interface
+#   debug:
+#     msg: "{{ wg_interface }}"
+#     # verbosity: "1"
+#   check_mode: no
 
 - name: Get wg ips of all peers
-  shell: "wg showconf {{ wg_interface_real }} | grep '^AllowedIPs ' | awk '{print $3}' | cut -d/ -f1"
+  shell: "wg showconf {{ wg_interface }} | grep '^AllowedIPs ' | awk '{print $3}' | cut -d/ -f1"
   environment:
     PATH: "{{ path }}"
   changed_when: false
@@ -128,7 +180,7 @@
   check_mode: no
 
 - name: Get wg add peer commands
-  local_action: "shell echo '{{ wireguard_peer_vpn_ips_to_add | join('\n')}}' | ../bin/wg_ips_to_add_peer_commands '{{ wireguard_ip_of_current_host }}' {{ wg_interface_real }}"
+  local_action: "shell echo '{{ wireguard_peer_vpn_ips_to_add | join('\n')}}' | ../bin/wg_ips_to_add_peer_commands '{{ wireguard_ip_of_current_host }}' {{ wg_interface }}"
   changed_when: false
   check_mode: no
   register: get_wireguard_add_peer_commands

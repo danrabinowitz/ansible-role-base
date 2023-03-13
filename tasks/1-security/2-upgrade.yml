@@ -1,4 +1,4 @@
 - include: 2-upgrade-Darwin.yml
-  when: ansible_os_family == 'Darwin'
+  when: ansible_os_family == 'Darwin' and not (skip_software_update | default(False))
 - include: 2-upgrade-Debian.yml
   when: ansible_os_family == 'Debian'

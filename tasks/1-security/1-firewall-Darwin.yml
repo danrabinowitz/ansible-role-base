@@ -15,16 +15,14 @@
     line: 'anchor "com.djrtechconsulting/*"'
   notify:
     - Reload pfconf
-  tags:
-    - wip
 - name: Load com.djrtechconsulting anchor
   lineinfile:
     path: /etc/pf.conf
     line: 'load anchor "com.djrtechconsulting" from "/etc/pf.anchors/com.djrtechconsulting"'
   notify:
     - Reload pfconf
-  tags:
-    - wip
+  # tags:
+  #   - wip
 
 - name: Declare com.djrtechconsulting / SSH anchor
   lineinfile:
@@ -151,6 +149,8 @@
   notify:
     - Reload pfconf
 
+
+# TODO: Opening these should be handled in the role for syncthing
 - name: Allow connections for syncthing
   lineinfile:
     path: /etc/pf.conf
@@ -203,6 +203,7 @@
     - Reload pfconf
 
 
+# TODO: The VNC stuff should be handled in the role for VNC
 - name: Declare com.djrtechconsulting / VNC anchor
   lineinfile:
     path: /etc/pf.anchors/com.djrtechconsulting
@@ -215,7 +216,6 @@
     line: 'load anchor "VNC" from "/etc/pf.rules/pfvnc.rule"'
   notify:
     - Reload pfconf
-
 # VNC (screen sharing)
 - name: Block all connections by default
   lineinfile:
@@ -224,7 +224,6 @@
     create: yes
   notify:
     - Reload pfconf
-
 - name: Allow connections from Dan's MBP
   lineinfile:
     path: /etc/pf.rules/pfvnc.rule
@@ -239,7 +238,6 @@
   when: allow_vnc_from_secure | default(False)
   notify:
     - Reload pfconf
-
 - name: Allow connections from Dan's MBP
   lineinfile:
     path: /etc/pf.rules/pfvnc.rule
@@ -254,8 +252,6 @@
   when: allow_vnc_from_secure | default(False)
   notify:
     - Reload pfconf
-
-
 # Kerberos, needed for VNC (screen sharing)
 - name: Block all connections by default
   lineinfile:
@@ -264,7 +260,6 @@
     create: yes
   notify:
     - Reload pfconf
-
 - name: Allow connections from Dan's MBP
   lineinfile:
     path: /etc/pf.rules/pfvnc.rule
@@ -279,7 +274,6 @@
   when: allow_vnc_from_secure | default(False)
   notify:
     - Reload pfconf
-
 - name: Allow connections from Dan's MBP
   lineinfile:
     path: /etc/pf.rules/pfvnc.rule
@@ -316,7 +310,7 @@
 - name: Get wireguard-go path
   shell: echo "$(brew --cellar wireguard-go)/$(brew list --versions wireguard-go | awk '{print $2}')/bin/wireguard-go"
   environment:
-    PATH: "{{ homebrew_prefix }}/bin:{{ homebrew_prefix }}/sbin:{{ ansible_env.PATH }}"
+    PATH: "{{ homebrew_prefix }}/bin:{{ ansible_env.PATH }}"
   register: wireguard_go_path_reg
   check_mode: no
   changed_when: false

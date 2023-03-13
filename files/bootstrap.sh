@@ -230,4 +230,12 @@ else
   ufw allow 51820/udp
 fi
 
+if [ "$platform" = "MacOS" ]; then
+  >&2 echo "Done with bootstrapping; doing a few provisioning things that can't be done via ansible"
+  >&2 echo "We need developer tools in order for Homebrew to work, and it requires a UI to install. Installing..."
+  xcode-select --install
+  >&2 echo "Done with xcode developer tools"
+
+fi
+
 echo "Done. Proceed with provisioning."

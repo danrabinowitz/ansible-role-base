@@ -38,20 +38,38 @@
     name: jq
     # state: latest
     # update_homebrew: true
-  environment:
-    PATH: "{{ homebrew_prefix }}/bin:{{ homebrew_prefix }}/sbin:{{ ansible_env.PATH }}"
+    path: "{{ homebrew_prefix }}/bin"
   become: true
   become_user: "{{ admin_username }}"
-  when: ansible_os_family == 'Darwin' and use_homebrew
+  when: ansible_os_family == 'Darwin' and use_homebrew and not ansible_check_mode
+  changed_when: false
+  async: 7200
+  poll: 0
+  register: homebrew_jq
+  tags:
+    - jq
+- name: 'homebrew_jq - wait for async task'
+  async_status:
+    jid: "{{ homebrew_jq.ansible_job_id }}"
+  register: job_result_homebrew_jq
+  until: job_result_homebrew_jq.finished
+  become: true
+  become_user: "{{ admin_username }}"
+  retries: 800
+  delay: 10
+  failed_when: false
+  when: ansible_os_family == 'Darwin' and use_homebrew and not ansible_check_mode
+  tags:
+    - jq
 
-- name: Install jq homebrew package without homebrew
-  get_url:
-    url: https://github.com/stedolan/jq/releases/download/jq-1.6/jq-osx-amd64
-    dest: /usr/local/bin/jq
-    mode: '0755'
-  when: ansible_os_family == 'Darwin' and not use_homebrew
+# - name: Install jq homebrew package without homebrew
+#   get_url:
+#     url: https://github.com/stedolan/jq/releases/download/jq-1.6/jq-osx-amd64
+#     dest: /usr/local/bin/jq
+#     mode: '0755'
+#   when: ansible_os_family == 'Darwin' and not use_homebrew
 
-- name: Install jq homebrew package
+- name: Install jq package
   package:
     name: jq
     # state: latest
@@ -59,12 +77,12 @@
 
 - name: Get tailscale IP
   # shell: tailscale status --json | jq -r '.Self.TailAddr'
-  shell: tailscale status --json | jq -r '.TailscaleIPs[]' | grep -v ':'
+  shell: tailscale ip --4
   register: tailscale_ip_v4_reg
   changed_when: false
   check_mode: no
   environment:
-    PATH: "{{ homebrew_prefix | default('') }}/bin:{{ homebrew_prefix | default('') }}/sbin:/usr/local/sbin:/usr/local/bin:{{ ansible_env.PATH }}"
+    PATH: "{{ homebrew_prefix | default('') }}/bin:/usr/local/sbin:/usr/local/bin:{{ ansible_env.PATH }}"
 - name: tailscale_ip_v4_reg
   debug:
     msg: "{{ tailscale_ip_v4_reg }}"

@@ -5,11 +5,13 @@
 
 # upgrade
 - include: 2-upgrade.yml
+  tags:
+    - upgrade
 
 - include: 2b-volumes.yml
   when: ansible_os_family == 'Debian'
 - include: 2b-disk_encryption_Darwin.yml
-  when: ansible_os_family == 'Darwin'
+  when: ansible_os_family == 'Darwin' and (not vmguest or (enable_disk_encryption | default(False)) )
   tags:
     - disk_encryption
 

@@ -1,3 +1,17 @@
 - name: Update software
   # -i means install and -a means all
   command: softwareupdate -i -a
+  async: 7200
+  poll: 0
+  register: softwareupdate
+  changed_when: false
+  when: not ansible_check_mode
+
+- name: 'softwareupdate - wait for async task'
+  async_status:
+    jid: "{{ softwareupdate.ansible_job_id }}"
+  register: job_result
+  until: job_result.finished
+  retries: 800
+  delay: 10
+  when: not ansible_check_mode

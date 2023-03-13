@@ -16,6 +16,7 @@
   set_fact:
      homebrew_install_dir: "/Users/{{ admin_username }}/.homebrew"
   check_mode: no
+  when: homebrew_install_dir is not defined
   tags:
     - always
 
@@ -23,7 +24,7 @@
   file:
     path: "{{ homebrew_install_dir }}"
     state: directory
-    owner: "{{ admin_username }}"
+    owner: "{{ homebrew_user }}"
     group: "staff"
     mode: 0700
 
@@ -33,6 +34,8 @@
   become_user: "{{ admin_username }}"
   args:
     creates: "{{ homebrew_install_dir }}/Library"
+  when: not homebrew_install_global
+  
 
 - name: "setup : homebrew prefix"
   set_fact:
@@ -47,11 +50,28 @@
     verbosity: 0
   check_mode: no
 
+# - name: "homebrew : set path_with_brew"
+#   set_fact:
+#      path_with_brew: "{{ homebrew_prefix }}/bin:{{ ansible_env.PATH }}"
+#   check_mode: no
+#   tags:
+#     - always
+
+# - name: Debug path_with_brew
+#   debug:
+#     var: path_with_brew
+#     verbosity: 0
+#   check_mode: no
+#   tags:
+#     - always
+
 # TODO: Can I overwrite ansible_env.PATH?
 - name: Validate that brew is in the path
   shell: brew --prefix
   environment:
-    PATH: "{{ homebrew_prefix }}/bin:{{ homebrew_prefix }}/sbin:{{ ansible_env.PATH }}"
+    PATH: "{{ homebrew_prefix }}/bin:{{ ansible_env.PATH }}"
+    # PATH: "{{ ansible_env.PATH }}"
+    # PATH: "{{ path_with_brew }}"
   check_mode: no
   changed_when: false
   register: brew_prefix_reg
@@ -62,20 +82,37 @@
     verbosity: 0
   check_mode: no
 
+
+
 # OS X Command line tools are required to use homebrew
-- name: Run elliotweiser.osx-command-line-tools
-  include_role:
-    name: elliotweiser.osx-command-line-tools
+# WARNING: This fails on MacOS Monterey 12.2. It needs a GUI to install.
+# So at this point, run it manually.
+# - name: Run elliotweiser.osx-command-line-tools
+#   include_role:
+#     name: elliotweiser.osx-command-line-tools
 
 # brew doctor complains if git is not installed.
 - name: Install git homebrew package
   homebrew:
     name: git
-  environment:
-    PATH: "{{ homebrew_prefix }}/bin:{{ homebrew_prefix }}/sbin:{{ ansible_env.PATH }}"
+    update_homebrew: yes
+    path: "{{ homebrew_prefix }}/bin"
   become: true
   become_user: "{{ admin_username }}"
-
+  async: 7200
+  poll: 0
+  register: homebrew_git
+  when: not ansible_check_mode
+- name: 'homebrew_git - wait for async task'
+  async_status:
+    jid: "{{ homebrew_git.ansible_job_id }}"
+  register: job_result_homebrew_git
+  until: job_result_homebrew_git.finished
+  become: true
+  become_user: "{{ admin_username }}"
+  retries: 800
+  delay: 10
+  when: not ansible_check_mode
 
 
 

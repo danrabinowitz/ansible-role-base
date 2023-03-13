@@ -45,10 +45,10 @@
   check_mode: no
   changed_when: false
 
-- name: Fail if custom user does not have access to Filevault
-  fail:
-    msg: "ERROR: {{ custom_username }} does not have access to Filevault. Log out if logged in. If that doesn't prompt you, then run this: fdesetup add -usertoadd {{ custom_username }} -user {{ admin_username }}"
-  when: not ansible_check_mode and custom_user_filevault_check_reg.stdout != "1"
+# - name: Fail if custom user does not have access to Filevault
+#   fail:
+#     msg: "ERROR: {{ custom_username }} does not have access to Filevault. Log out if logged in. If that doesn't prompt you, then run this: fdesetup add -usertoadd {{ custom_username }} -user {{ admin_username }}"
+#   when: not ansible_check_mode and custom_user_filevault_check_reg.stdout != "1"
 
 # fdesetup list | grep -c '^bob,'
 
