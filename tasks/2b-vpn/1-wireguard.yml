@@ -7,7 +7,7 @@
   async: 7200
   poll: 0
   register: homebrew_wireguard
-  when: not ansible_check_mode
+  when: not ansible_check_mode and ansible_os_family == 'Darwin'
 - name: 'homebrew_wireguard - wait for async task'
   async_status:
     jid: "{{ homebrew_wireguard.ansible_job_id }}"
@@ -17,7 +17,16 @@
   become_user: "{{ admin_username }}"
   retries: 800
   delay: 10
-  when: not ansible_check_mode
+  when: not ansible_check_mode and ansible_os_family == 'Darwin'
+
+
+
+- name: ensure latest wireguard package is installed
+  package:
+    name: wireguard
+    state: latest
+  when: ansible_os_family != 'Darwin'
+
 
 
 - set_fact:
@@ -29,7 +38,7 @@
     path: "{{ wg_dir }}"
     state: directory
     owner: root
-    group: wheel
+    group: root
     mode: 0700
 
 - set_fact:
@@ -95,13 +104,13 @@
   file:
     path: "{{ wg_dir }}/privatekey"
     owner: root
-    group: wheel
-    mode: '0400'
+    group: root
+    mode: '0600' # I tried using 0400, but it seems like the Linux setup resets it to 0600. So we'll go with that.
 - name: Set wg conf perms
   file:
     path: "{{ wg_dir }}/{{ wg_interface }}.conf"
     owner: root
-    group: wheel
+    group: root
     mode: '0400'
 
 
@@ -193,19 +202,6 @@
   check_mode: no
   when: (wireguard_peer_vpn_ips_to_add | length>0)
 
-- name: Add wg peers
-  shell: "{{ item }}"
-  environment:
-    PATH: "{{ path }}"
-  with_items: "{{ get_wireguard_add_peer_commands.stdout_lines }}"
-  when: (wireguard_peer_vpn_ips_to_add | length>0)
-
-- name: Save and restart wg
-  shell: "wg-quick save {{ wg_interface }} && wg-quick down {{ wg_interface }} && wg-quick up {{ wg_interface }}"
-  environment:
-    PATH: "{{ path }}"
-  when: (wireguard_peer_vpn_ips_to_add | length>0) and (ansible_os_family == 'Debian')
-
 # Start wg on bootup
 - name: Install wg-quick service
   copy:
@@ -221,6 +217,20 @@
     enabled: yes
     state: started
   when: ansible_os_family == 'Debian'
+
+- name: Add wg peers
+  shell: "{{ item }}"
+  environment:
+    PATH: "{{ path }}"
+  with_items: "{{ get_wireguard_add_peer_commands.stdout_lines }}"
+  when: (wireguard_peer_vpn_ips_to_add | length>0)
+
+- name: Save and restart wg
+  shell: "wg-quick save {{ wg_interface }} && wg-quick down {{ wg_interface }} && wg-quick up {{ wg_interface }}"
+  environment:
+    PATH: "{{ path }}"
+  when: (wireguard_peer_vpn_ips_to_add | length>0) and (ansible_os_family == 'Debian')
+
 
 
 - name: Install wireguard_runner

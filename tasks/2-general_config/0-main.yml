@@ -21,7 +21,7 @@
     - prometheus_monitoring
 
 - include: 7-digitalocean_monitoring.yml
-  when: ansible_os_family == 'Debian'
+  when: ansible_os_family == 'Debian' and (digitalocean_hosted | default(True))
 
 - include: 8-login-tracking.yml
   when: ansible_os_family == 'Debian'

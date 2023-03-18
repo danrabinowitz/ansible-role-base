@@ -1,6 +1,6 @@
 - name: "Security : Upgrade  : Install aptitude before performing any bulk upgrades"
   apt:
-    name: ['aptitude', 'python-apt']
+    name: ['aptitude', 'python3-apt']
     state: present
     update_cache: yes
     install_recommends: no
