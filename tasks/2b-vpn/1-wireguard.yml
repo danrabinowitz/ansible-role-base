@@ -105,13 +105,13 @@
     path: "{{ wg_dir }}/privatekey"
     owner: root
     group: root
-    mode: '0600' # I tried using 0400, but it seems like the Linux setup resets it to 0600. So we'll go with that.
+    mode: '0600' # I tried using 0400, but it seems like Ubuntu Jammy (22.04) resets it to 600. So we'll go with that.
 - name: Set wg conf perms
   file:
     path: "{{ wg_dir }}/{{ wg_interface }}.conf"
     owner: root
     group: root
-    mode: '0400'
+    mode: '0600' # I tried using 0400, but it seems like Ubuntu Jammy (22.04) resets it to 600. So we'll go with that.
 
 
 
@@ -127,11 +127,27 @@
 #   register: install_wg_cfg
 #   # wg_private_key
 
-- name: Start wg
-  shell: "wg-quick up {{ wg_interface }}"
-  environment:
-    PATH: "{{ path }}"
-  when: install_wg_cfg.changed
+# - name: Start wg
+#   shell: "wg-quick up {{ wg_interface }}"
+#   environment:
+#     PATH: "{{ path }}"
+#   when: install_wg_cfg.changed
+# Start wg on bootup
+- name: Install wg-quick service
+  copy:
+    src: lib/systemd/system/wg-quick@.service
+    dest: /lib/systemd/system/
+    owner: root
+    group: root
+    mode: '0644'
+  when: ansible_os_family == 'Debian'
+
+- name: Enable wg-quick
+  systemd:
+    name: "wg-quick@{{ wg_interface }}"
+    enabled: yes
+    state: started
+  when: ansible_os_family == 'Debian'
 
 
 
@@ -202,21 +218,6 @@
   check_mode: no
   when: (wireguard_peer_vpn_ips_to_add | length>0)
 
-# Start wg on bootup
-- name: Install wg-quick service
-  copy:
-    src: lib/systemd/system/wg-quick@.service
-    dest: /lib/systemd/system/
-    owner: root
-    group: root
-    mode: '0644'
-  when: ansible_os_family == 'Debian'
-- name: Enable wg-quick
-  systemd:
-    name: "wg-quick@{{ wg_interface }}"
-    enabled: yes
-    state: started
-  when: ansible_os_family == 'Debian'
 
 - name: Add wg peers
   shell: "{{ item }}"

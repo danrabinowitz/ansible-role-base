@@ -24,7 +24,7 @@
 #   when: ansible_os_family == 'Debian'
 
 - include: 5-pam_google_authenticator.yml
-  when: ansible_os_family == 'Debian'
+  when: ansible_os_family == 'Debian' and not (skip_pam_google_authenticator | default(False))
   tags:
     - pam_google_authenticator
 

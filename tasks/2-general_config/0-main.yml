@@ -31,6 +31,11 @@
     - djr_ca_root
   when: ansible_os_family == 'Debian'
 
+- include: 30-cloud-init.yml
+  tags:
+    - cloud-init
+  when: ansible_os_family == 'Debian'
+
 # - include: 50-logrotate.yml
 #   tags:
 #     - logrotate

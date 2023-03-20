@@ -1,3 +1,22 @@
+- name: Create dirs
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: root
+    group: root
+    mode: 0755
+  with_items:
+    - /etc/systemd/system/ssh.service.d
+
+- name: Ensure ssh doesn't start until the network is available
+  copy:
+    src: etc/systemd/system/ssh.service.d/override.conf
+    dest: /etc/systemd/system/ssh.service.d/override.conf
+    owner: root
+    group: root
+    mode: '0644'
+  when: ansible_os_family == 'Debian'
+
 - name: "Security : sshd : Remove junk from /etc/ssh/"
   file:
     path: /etc/ssh/{{ item }}
