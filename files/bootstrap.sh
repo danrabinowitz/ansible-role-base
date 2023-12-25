@@ -13,6 +13,11 @@ set -u
 set -o pipefail
 
 ################################################################################
+
+# TODO: Find a way to combine this with the user-data.j2 script used by cloud-init. That should pull this from github by SHA and run it.
+# The goal is: In a minimalist way, provide security (lock down access), and then grant essential access only.
+
+
 # Documentation and usage
 function doc {
   >&2 cat << EOF
@@ -170,6 +175,8 @@ set -x
 
   if [ "$(uname -m)" = "x86_64" ]; then
     arch="amd64"
+  else
+    arch="$(uname -m)"
   fi
 
   osarch="$os-$arch"
