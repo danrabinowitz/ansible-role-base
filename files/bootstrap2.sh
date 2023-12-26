@@ -46,18 +46,19 @@ function install_tailscale {
 }
 
 ################################################################################
+skip_tailscale="${skip_tailscale:-}"
+tailscale_key="${tailscale_key:-}"
+
 function validate {
   >&2 printf "Validating...\n"
 
-  # TODO: Add a SKIP_TAILSCALE option
-  >&2 printf "Validating: tailscale_key...\n"
-  tailscale_key="${tailscale_key:-}"
-  if [ -z "$tailscale_key" ]; then
-    >&2 printf "FATAL ERROR: tailscale_key is required\n"
-    exit 1
+  if [ -z "$skip_tailscale" ]; then
+    >&2 printf "Validating: tailscale_key...\n"
+    if [ -z "$tailscale_key" ]; then
+      >&2 printf "FATAL ERROR: tailscale_key is required\n"
+      exit 1
+    fi
   fi
-
-
 }
 
 function secure {
@@ -67,7 +68,9 @@ function secure {
 function access {
   >&2 printf "Ensuring access...\n"
 
-  install_tailscale
+  if [ -z "$skip_tailscale" ]; then
+    install_tailscale
+  fi
 }
 ################################################################################
 # TODO: Consider using getopts instead of ENV vars
