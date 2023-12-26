@@ -42,10 +42,10 @@ function install_tailscale {
 
   >&2 printf "Tailscale installed. Connecting...\n"
   tailscale up -authkey "$tailscale_key"
-
 }
 
 ################################################################################
+run_function="${run_function:-main}"
 skip_tailscale="${skip_tailscale:-}"
 tailscale_key="${tailscale_key:-}"
 
@@ -76,10 +76,10 @@ function access {
 # TODO: Consider using getopts instead of ENV vars
 
 function main {
-  printf "Start: STDOUT\n"
-  >&2 printf "Start: STDERR\n"
-  console_tty="/dev/ttyAMA0"
-  printf "Start: Console\n" > "$console_tty"
+  # printf "Start: STDOUT\n"
+  # >&2 printf "Start: STDERR\n"
+  # console_tty="/dev/ttyAMA0"
+  # printf "Start: Console\n" > "$console_tty"
 
   validate # Ensure that arguments and parameters are present and valid
   secure # Ensure that the system is locked down
@@ -88,4 +88,22 @@ function main {
   >&2 printf "bootstrap: Done!\n"
 }
 ################################################################################
-main
+function function_runner {
+  case "$run_function" in
+    main)
+      main
+
+      ;;
+
+    install_tailscale)
+      install_tailscale
+      ;;
+
+    *)
+      >&2 printf "FATAL ERROR: Unknown function to run: %s\n" "$run_function"
+      exit 1
+      ;;
+  esac
+}
+################################################################################
+function_runner
