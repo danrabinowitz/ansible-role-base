@@ -18,6 +18,11 @@ set -o pipefail
 # NOTE: Do not write files under /tmp during boot because of a race with systemd-tmpfiles-clean that can cause temp files to get cleaned during the early boot process. Use /run/somedir instead to avoid race LP:1707222.
 # ref: https://cloudinit.readthedocs.io/en/latest/topics/modules.html#write-files
 
+# If running this manually, run something like this:
+# curl -fsS --output /tmp/bootstrap2.sh "https://raw.githubusercontent.com/danrabinowitz/ansible-role-base/master/files/bootstrap2.sh" && tailscale_key="" bash /tmp/bootstrap2.sh
+# or
+# curl -fsS --output /tmp/bootstrap2.sh "https://raw.githubusercontent.com/danrabinowitz/ansible-role-base/master/files/bootstrap2.sh" && tailscale_key="" run_function="install_tailscale" bash /tmp/bootstrap2.sh
+
 ################################################################################
 function install_tailscale {
   >&2 printf "Installing Tailscale...\n"
@@ -89,6 +94,7 @@ function main {
 }
 ################################################################################
 function function_runner {
+
   case "$run_function" in
     main)
       main
@@ -106,4 +112,9 @@ function function_runner {
   esac
 }
 ################################################################################
+if [[ $UID -ne 0 ]]; then
+  sudo -p 'Restarting as root, password: ' tailscale_key="$tailscale_key" run_function="$run_function" bash $0 "$@"
+  exit $?
+fi
+
 function_runner
