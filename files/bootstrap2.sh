@@ -14,9 +14,50 @@ set -o pipefail
 # This script is designed to be run in two cases:
 # 1) from cloud-init, from a per-once script
 # 2) manually, when setting up a new machine that doesn't use cloud-init
+
+# NOTE: Do not write files under /tmp during boot because of a race with systemd-tmpfiles-clean that can cause temp files to get cleaned during the early boot process. Use /run/somedir instead to avoid race LP:1707222.
+# ref: https://cloudinit.readthedocs.io/en/latest/topics/modules.html#write-files
+
+################################################################################
+function install_tailscale {
+  >&2 printf "Installing Tailscale...\n"
+
+  if [ "$(lsb_release --id --short)" == "Ubuntu" ]; then
+    codename=$(lsb_release --codename --short)
+
+    # mkdir -p --mode=0755 /usr/share/keyrings
+
+    # Get the tailscale keyring
+    curl -fsSL "https://pkgs.tailscale.com/stable/ubuntu/${codename}.noarmor.gpg" -o /usr/share/keyrings/tailscale-archive-keyring.gpg
+
+    # Add the tailscale repository
+    curl -fsSL "https://pkgs.tailscale.com/stable/ubuntu/${codename}.tailscale-keyring.list" | tee /etc/apt/sources.list.d/tailscale.list
+
+    apt-get update && apt-get -y install tailscale
+
+  else
+    >&2 printf "Unsupported OS\n"
+    exit 1
+  fi
+
+  >&2 printf "Tailscale installed. Connecting...\n"
+  tailscale up -authkey "$tailscale_key"
+
+}
+
 ################################################################################
 function validate {
   >&2 printf "Validating...\n"
+
+  # TODO: Add a SKIP_TAILSCALE option
+  >&2 printf "Validating: tailscale_key...\n"
+  tailscale_key="${tailscale_key:-}"
+  if [ -z "$tailscale_key" ]; then
+    >&2 printf "FATAL ERROR: tailscale_key is required\n"
+    exit 1
+  fi
+
+
 }
 
 function secure {
@@ -25,16 +66,23 @@ function secure {
 
 function access {
   >&2 printf "Ensuring access...\n"
+
+  install_tailscale
 }
 ################################################################################
+# TODO: Consider using getopts instead of ENV vars
+
 function main {
   printf "Start: STDOUT\n"
   >&2 printf "Start: STDERR\n"
-  printf "Start: Console\n" > /dev/ttyAMA0
+  console_tty="/dev/ttyAMA0"
+  printf "Start: Console\n" > "$console_tty"
 
   validate # Ensure that arguments and parameters are present and valid
   secure # Ensure that the system is locked down
   access # Ensure that admin access is configured
+
+  >&2 printf "bootstrap: Done!\n"
 }
 ################################################################################
 main
