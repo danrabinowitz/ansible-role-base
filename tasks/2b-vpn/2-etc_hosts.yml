@@ -2,6 +2,7 @@
   local_action: "shell echo '{{ wireguard_peer_machine_names | join('\n')}}' | ../bin/names_to_etc_host_entries"
   changed_when: false
   check_mode: no
+  become: false
   register: wg_names_to_etc_host_entries_conversion
 
 - name: set wg_etc_host_entries

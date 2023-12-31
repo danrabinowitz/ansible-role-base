@@ -71,6 +71,7 @@
   local_action: "shell echo '{{ wireguard_peer_machine_names | join('\n')}}' | ../bin/names_to_wg_ips"
   changed_when: false
   check_mode: no
+  become: false
   register: wireguard_peer_ip_conversion
 
 - set_fact:
@@ -81,6 +82,7 @@
   local_action: "shell echo '{{ hostvars[inventory_hostname]['do_name'] }}' | ../bin/names_to_wg_ips"
   changed_when: false
   check_mode: no
+  become: false
   register: wireguard_ip_of_current_host_conversion
 
 - set_fact:
@@ -209,6 +211,7 @@
   changed_when: false
   check_mode: no
   register: get_wireguard_add_peer_commands
+  become: false
   when: (wireguard_peer_vpn_ips_to_add | length>0)
 
 - name: get_wireguard_add_peer_commands

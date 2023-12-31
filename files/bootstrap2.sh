@@ -98,7 +98,6 @@ function function_runner {
   case "$run_function" in
     main)
       main
-
       ;;
 
     install_tailscale)
