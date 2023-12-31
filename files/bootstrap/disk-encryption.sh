@@ -14,33 +14,7 @@ set -x
 run_function="${run_function:-main}"
 
 ################################################################################
-function build_shufflecake_kernel_module {
-  sudo apt install "linux-headers-$(uname -r)" libdevmapper-dev libgcrypt-dev
-  libgcrypt-config --version
-  cd ~
-  git clone https://codeberg.org/shufflecake/shufflecake-c.git
-  cd shufflecake-c
 
-  sudo apt install make gcc
-
-  # The next line is from here: https://askubuntu.com/a/1404795
-  sudo ln -sf "/usr/lib/modules/$(uname -r)/vmlinux.xz" /boot/
-
-  make
-
-  sudo mkdir -p "/lib/modules/$(uname -r)/kernel/drivers/shufflecake"
-  sudo cp dm-sflc.ko "/lib/modules/$(uname -r)/kernel/drivers/shufflecake"
-
-  sudo sh -c 'echo "shufflecake/dm-sflc" >> /etc/modules'
-
-  # Then, back on the host:
-  # scp linux-sandbox:shufflecake-c/shufflecake ~/code/src/danrabinowitz/ServerManagement/docker-workdir/ansible/roles/danrabinowitz-role-base/files/bootstrap/shufflecake/6.5.0-14
-  # scp linux-sandbox:shufflecake-c/dm-sflc.ko ~/code/src/danrabinowitz/ServerManagement/docker-workdir/ansible/roles/danrabinowitz-role-base/files/bootstrap/shufflecake/6.5.0-14
-}
-
-function install_shufflecake {
-  scp ~/code/src/danrabinowitz/ServerManagement/docker-workdir/ansible/roles/danrabinowitz-role-base/files/bootstrap/shufflecake/6.5.0-14/* linux-sandbox:
-}
 
 ################################################################################
 function validate {
