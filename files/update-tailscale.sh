@@ -15,7 +15,7 @@ set -x
 
 # TODO: Set up a d2r.io shortcut for this.
 # Run something like this:
-# sh -c "$(curl -sSL https://https://raw.githubusercontent.com/danrabinowitz/ansible-role-base/master/files/update-tailscale.sh)"
+# sh -c "$(curl -sSL https://d2r.io/macts-update)"
 
 
 ################################################################################
